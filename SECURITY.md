@@ -27,13 +27,19 @@ MCP サーバ（`mcp/server.py`）はローカルでツール（Verible / Verila
 ## ブランチ保護（public 化時に設定）
 
 ```bash
-gh api repos/MameMame777/rtl-harness/branches/main/protection --method PUT \
-  --field required_status_checks='{"strict":true,"contexts":["Secret scan / scan","CI / sanity"]}' \
-  --field enforce_admins=true \
-  --field required_pull_request_reviews='{"required_approving_review_count":1,"dismiss_stale_reviews":true,"require_code_owner_reviews":true}' \
-  --field restrictions=null \
-  --field allow_force_pushes=false \
-  --field allow_deletions=false
+# enforce_admins is false while there is a single maintainer (nobody else can approve);
+# switch it to true once two or more domain owners exist.
+gh api repos/MameMame777/rtl-harness/branches/main/protection --method PUT --input - <<'EOF'
+{
+  "required_status_checks": {"strict": true, "contexts": ["sanity", "harness (lint, sim, doctor)", "scan"]},
+  "enforce_admins": false,
+  "required_pull_request_reviews": {"required_approving_review_count": 1, "dismiss_stale_reviews": true, "require_code_owner_reviews": true},
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "required_conversation_resolution": true
+}
+EOF
 
 gh api repos/MameMame777/rtl-harness --method PATCH \
   -f 'security_and_analysis[secret_scanning][status]=enabled' \

@@ -16,14 +16,17 @@
 
 ## ブランチ保護と GitHub 設定
 
-private の間（GitHub Free）はブランチ保護が使えないので、CI の status 表示とレビュー運用で代替する。
-public 化した時点で `SECURITY.md` の `gh api` コマンドで次を有効にする。
+2026-09-25 に public 化し、次を有効にした（`SECURITY.md` の `gh api` コマンド）。
 
-- required status checks: `CI / sanity`（P1 以降は lint / sim / lint-off / doctor も）、`Secret scan / scan`
-- required reviews: 1 人、code owner review 必須、stale review の破棄
-- force push と削除の禁止、管理者にも適用
-- secret scanning + push protection、Dependabot alerts、CodeQL（Python）
+- required status checks（strict）: `sanity`、`harness (lint, sim, doctor)`、`scan`
+- required reviews: 1 人、code owner review 必須、stale review の破棄、会話の解決必須
+- force push と削除の禁止
+- **管理者のバイパスは当面許可**（`enforce_admins=false`）: メンテナが 1 人の間は、自分の PR を承認できる人がいないため。領域オーナーが 2 人以上になったら `enforce_admins=true` に切り替える
+- secret scanning + push protection、Dependabot alerts / security updates、CodeQL（Python、`codeql.yml`）
 - Settings → Actions: Workflow permissions は Read repository contents、Actions による PR 作成・承認は無効
+
+GHCR のイメージ `rtl-harness-ci` の可視性は REST では変えられないので、Package settings（Danger Zone → Change visibility）で
+public にする。private のままでも CI はイメージをその場でビルドして動く（遅くなるだけ）。
 
 ## バージョンと 2 段階導入
 
