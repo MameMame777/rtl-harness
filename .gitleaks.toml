@@ -1,0 +1,28 @@
+# .gitleaks.toml -- extends the default gitleaks rules with an allowlist for documented
+# BAD examples and well-known tool install roots. Every entry must say why it is allowed.
+
+title = "rtl-harness gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Documentation examples and tool references that are not real secrets"
+
+paths = [
+  # Security policy and contributing guide intentionally show BAD examples
+  '''SECURITY\.md''',
+  '''CONTRIBUTING\.md''',
+  '''\.github/pull_request_template\.md''',
+  # The original planning document (Japanese) -- reviewed before publication
+  '''docs/plan/.*''',
+  # The hygiene checker itself contains the regexes it looks for
+  '''scripts/ci/hygiene\.py''',
+]
+
+regexes = [
+  # Well-known MSYS2 install roots probed by the toolchain resolver (not user data)
+  '''C:\\msys64|C:\\msys2|C:\\tools\\msys64''',
+  # PowerShell .EXAMPLE doc blocks use a drive letter as a placeholder
+  '''\.EXAMPLE[\s\S]{0,500}(E:\\|C:\\)''',
+]

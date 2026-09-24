@@ -1,0 +1,91 @@
+# Daily full-repository security audit: whole git history with gitleaks and TruffleHog, plus
+# scripts/ci/hygiene.py over every tracked file. Findings open (or update) one issue labelled
+# security-audit and fail the run.
+name: Security audit
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # 09:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-scan:
+    name: full-scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install pinned gitleaks
+        run: bash scripts/ci/install_gitleaks.sh
+
+      - name: gitleaks (full history)
+        id: gitleaks
+        run: |
+          set +e
+          gitleaks git --redact --exit-code 2 --report-format json --report-path gitleaks.json .
+          rc=$?
+          set -e
+          n=0
+          [ -f gitleaks.json ] && n=$(python3 -c "import json; print(len(json.load(open('gitleaks.json'))))")
+          echo "count=$n" >> "$GITHUB_OUTPUT"
+          echo "gitleaks findings: $n (rc=$rc)"
+
+      - name: TruffleHog (full history, verified only)
+        uses: trufflesecurity/trufflehog@4dd8831c5f12599465d4d45c3c447b4018a34c85 # v3.97.9
+        continue-on-error: true
+        with:
+          path: ./
+          extra_args: --only-verified
+
+      - name: Hygiene (all tracked files)
+        id: hygiene
+        run: |
+          set +e
+          python3 scripts/ci/hygiene.py --all --report-file hygiene.md
+          rc=$?
+          set -e
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+
+      - name: Open or update the audit issue
+        if: steps.gitleaks.outputs.count != '0' || steps.hygiene.outputs.rc != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITLEAKS_COUNT: ${{ steps.gitleaks.outputs.count }}
+        run: |
+          {
+            echo "## Security audit report"
+            echo
+            echo "- Date: $(date -u +%Y-%m-%d)"
+            echo "- Run: $RUN_URL"
+            echo "- gitleaks findings (full history): $GITLEAKS_COUNT (details in the run log, redacted)"
+            echo
+            if [ -f hygiene.md ]; then cat hygiene.md; fi
+            echo
+            echo "## Action required"
+            echo "1. Review each finding. 2. Replace sensitive values with placeholders or rotate them."
+            echo "3. False positives: add a justified entry to .gitleaks.toml or a 'hygiene-ok' comment."
+          } > body.md
+          existing=$(gh issue list --repo "$REPO" --label security-audit --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$REPO" --body-file body.md
+          else
+            gh issue create --repo "$REPO" --title "Security audit: findings ($(date -u +%Y-%m-%d))" --label security-audit --body-file body.md
+          fi
+
+      - name: Fail when findings exist
+        if: steps.gitleaks.outputs.count != '0' || steps.hygiene.outputs.rc != '0'
+        run: |
+          echo "security audit found violations (see the issue)"
+          exit 1

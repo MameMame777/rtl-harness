@@ -1,0 +1,55 @@
+# CI -- runs on every PR and on pushes to main.
+# P0: config sanity only. P1 adds lint / sim / lint-off / doctor jobs inside the CI container.
+# Security: read-only token by default, actions pinned by commit SHA, no pull_request_target.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sanity:
+    name: sanity
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate TOML and JSON files
+        run: |
+          python3 - <<'PY'
+          import glob, json, sys, tomllib
+          bad = 0
+          for f in sorted(glob.glob("**/*.toml", recursive=True)):
+              try:
+                  tomllib.load(open(f, "rb"))
+              except Exception as exc:
+                  print(f"{f}: {exc}"); bad += 1
+          for f in sorted(glob.glob("**/*.json", recursive=True)):
+              try:
+                  json.load(open(f, encoding="utf-8"))
+              except Exception as exc:
+                  print(f"{f}: {exc}"); bad += 1
+          print("config files checked")
+          sys.exit(1 if bad else 0)
+          PY
+
+      - name: AGENTS.md stays within 100 lines
+        run: |
+          if [ -f AGENTS.md ]; then
+            n=$(wc -l < AGENTS.md)
+            echo "AGENTS.md: $n lines"
+            [ "$n" -le 100 ] || { echo "AGENTS.md exceeds 100 lines"; exit 1; }
+          else
+            echo "AGENTS.md not present yet (P2)"
+          fi

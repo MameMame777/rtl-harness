@@ -1,0 +1,39 @@
+# harness.toml -- project-specific settings for rtl-harness.
+#
+# This copy is the harness's OWN configuration (self-consumption): the examples/ and tb/smoke
+# designs are linted and simulated with the same code path a consumer project uses.
+# A consumer project copies templates/harness.toml instead.
+
+[harness]
+schema = 1
+require = ">=0.1,<1"
+
+[design]
+sources = ["examples/**/*.sv", "tb/smoke/*.sv"]
+includes = []
+defines = []
+exclude = []
+top = ""
+
+[domains]
+active = ["bus", "cpu", "verif"]
+
+[lint]
+waiver = "rules/common/waivers.verible"
+severity_overrides = {}
+
+[sim]
+tests = ["examples/**/test_*.py", "tb/smoke/test_*.py"]
+manifest = "tb/manifest.toml"
+engine = "verilator"
+build_dir = ".harness/build"
+
+[sync]
+tools = ["claude", "copilot"]
+extra_instructions = ""
+
+[tickets]
+dir = "tickets"
+github = "auto"
+escalate_repo = "MameMame777/rtl-harness"
+redact = []

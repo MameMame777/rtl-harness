@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.venv-sim/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# harness runtime outputs (never commit)
+.harness/
+.tools/
+.cache/
+_exec/
+sim_build/
+results.xml
+*.vcd
+*.fst
+*.log
+tb/toolchain/make_shim/make.exe
+
+# editors
+.vscode/*
+!.vscode/mcp.json
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store

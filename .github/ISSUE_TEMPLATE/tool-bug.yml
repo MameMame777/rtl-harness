@@ -1,0 +1,42 @@
+name: "ツール不具合"
+description: "run_lint / run_sim / get_waveform / list_design / CLI / sync / provision / ticket の不具合"
+title: "[tool] "
+labels: ["kind:tool", "domain:verif", "harness", "stage:triage"]
+body:
+  - type: dropdown
+    id: tool
+    attributes:
+      label: Tool
+      options: [run_lint, run_sim, get_waveform, list_design, cli, sync, provision, ticket, setup]
+    validations:
+      required: true
+  - type: input
+    id: harness_version
+    attributes:
+      label: Harness version
+      description: submodule のタグ (例 v0.1.0)
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: 実行環境
+      description: OS / Python / Verilator / Verible の版（`rtl-harness doctor` の出力）
+  - type: textarea
+    id: input
+    attributes:
+      label: 入力
+      description: 呼び出したコマンド、または MCP ツールの引数（パスは相対に）
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: 返ってきた JSON / エラー
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待した結果

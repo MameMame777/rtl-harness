@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rtl-harness"
+version = "0.1.0"
+description = "Shared AI-agent harness for RTL design: one rule set, one toolset, one verification loop."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+# The core package depends on the standard library only. Everything heavier lives in an extra
+# so the CLI / MCP interpreter and the cocotb (MSYS2 ucrt64) interpreter can stay separate.
+dependencies = []
+
+[project.optional-dependencies]
+sim = ["cocotb==2.0.1", "find_libpython==0.5.1", "pytest>=8,<9"]
+mcp = ["mcp>=2.2,<3"]
+dev = ["ruff>=0.6", "pre-commit>=3.7", "pytest>=8,<9"]
+
+[project.scripts]
+rtl-harness = "rtl_harness.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rtl_harness", "tb/harness_tb"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tb", "rules", "scripts", "docs", "README.md", "LICENSE"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = [".venv", ".venv-sim", ".harness", ".tools", ".cache", "evals"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["rtl_harness", "harness_tb"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

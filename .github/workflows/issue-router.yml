@@ -1,0 +1,73 @@
+# Routes new issues: derives domain:* / model:* labels from the issue-form answers, assigns the
+# domain owners from .github/owners.toml, and marks harness-related kinds for triage.
+name: Issue router
+
+on:
+  issues:
+    types: [opened, edited, labeled]
+
+permissions:
+  contents: read
+
+jobs:
+  route:
+    name: route
+    if: github.event.issue.pull_request == null
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/owners.toml
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require("fs");
+            const issue = context.payload.issue;
+            const body = issue.body || "";
+            const have = new Set(issue.labels.map((l) => l.name));
+
+            // Minimal TOML reader for `key = ["a", "b"]` lines under [owners].
+            const owners = {};
+            for (const line of fs.readFileSync(".github/owners.toml", "utf8").split("\n")) {
+              const m = line.match(/^\s*([a-z_]+)\s*=\s*\[(.*)\]\s*$/);
+              if (m) owners[m[1]] = [...m[2].matchAll(/"([^"]+)"/g)].map((x) => x[1]);
+            }
+
+            // Issue forms render each field as "### <Label>\n\n<value>".
+            const field = (label) => {
+              const m = body.match(new RegExp("### " + label + "\\s*\\n+\\s*([^\\n]+)"));
+              return m ? m[1].trim() : null;
+            };
+            const add = new Set();
+            const domain = field("Domain");
+            if (domain && ["bus", "cpu", "verif"].includes(domain)) add.add("domain:" + domain);
+            const model = field("Model");
+            if (model && ["claude", "copilot", "codex", "qwen"].includes(model)) add.add("model:" + model);
+            const harnessKind = [...have].some((l) => ["kind:deviation", "kind:rule", "kind:tool"].includes(l));
+            if (harnessKind && ![...have].some((l) => l.startsWith("stage:"))) add.add("stage:triage");
+
+            const labels = [...add].filter((l) => !have.has(l));
+            if (labels.length) {
+              await github.rest.issues.addLabels({ ...context.repo, issue_number: issue.number, labels });
+              core.info("added labels: " + labels.join(", "));
+            }
+
+            const all = new Set([...have, ...add]);
+            const assignees = new Set();
+            for (const l of all) {
+              if (l.startsWith("domain:")) for (const o of owners[l.slice(7)] || []) assignees.add(o);
+            }
+            if (harnessKind && assignees.size === 0) for (const o of owners.release || []) assignees.add(o);
+            const current = new Set(issue.assignees.map((a) => a.login));
+            const toAssign = [...assignees].filter((a) => !current.has(a));
+            if (toAssign.length) {
+              await github.rest.issues.addAssignees({ ...context.repo, issue_number: issue.number, assignees: toAssign });
+              core.info("assigned: " + toAssign.join(", "));
+            }

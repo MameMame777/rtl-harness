@@ -1,0 +1,72 @@
+# Builds the CI container image and pushes it to GHCR.
+# Runs only on pushes to main (never for pull requests, so a fork cannot publish an image)
+# and on manual dispatch. Tool versions and digests come from rules/common/tool-versions.toml.
+name: CI image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - rules/common/tool-versions.toml
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/image.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build-and-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Read pinned tool versions
+        id: tv
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import tomllib
+          t = tomllib.load(open("rules/common/tool-versions.toml", "rb"))
+          print(f"verilator_ref={t['verilator']['docker_image']}@{t['verilator']['docker_digest']}")
+          print(f"uv_ref={t['uv']['docker_image']}@{t['uv']['docker_digest']}")
+          print(f"verible_tag={t['verible']['tag']}")
+          print(f"verible_url={t['verible']['linux_x86_64_url']}")
+          print(f"verible_sha256={t['verible']['linux_x86_64_sha256']}")
+          PY
+
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/rtl-harness-ci
+          tags: |
+            type=sha,format=long
+            type=raw,value=latest
+
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          push: true
+          provenance: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERILATOR_IMAGE=${{ steps.tv.outputs.verilator_ref }}
+            UV_IMAGE=${{ steps.tv.outputs.uv_ref }}
+            VERIBLE_TAG=${{ steps.tv.outputs.verible_tag }}
+            VERIBLE_URL=${{ steps.tv.outputs.verible_url }}
+            VERIBLE_SHA256=${{ steps.tv.outputs.verible_sha256 }}

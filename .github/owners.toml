@@ -1,0 +1,8 @@
+# Domain -> GitHub handles. Mirrors CODEOWNERS; read by .github/workflows/issue-router.yml
+# to assign issues labelled domain:<name>. Keep the values identical to CODEOWNERS.
+
+[owners]
+bus = ["MameMame777"]
+cpu = ["MameMame777"]
+verif = ["MameMame777"]
+release = ["MameMame777"]

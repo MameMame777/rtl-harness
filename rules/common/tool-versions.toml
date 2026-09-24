@@ -1,0 +1,36 @@
+# Pinned tool versions and digests (single source of truth).
+# Every download in the harness -- setup scripts, Dockerfile, CI -- verifies against this file.
+# Update one tool per PR and say why in the PR description.
+
+[verilator]
+version = "5.048"
+docker_image = "verilator/verilator:v5.048"
+docker_digest = "sha256:342bf0e4468892f1abec354433c8332f177bc589f3553dbbd07b43fcec13eeb2"
+msys2_package = "mingw-w64-ucrt-x86_64-verilator"
+
+[verible]
+tag = "v0.0-4296-g0f262651"
+win64_url = "https://github.com/chipsalliance/verible/releases/download/v0.0-4296-g0f262651/verible-v0.0-4296-g0f262651-win64.zip"
+win64_sha256 = "4590841d91dadb108879aa261dbfd7081db06360484a7a21470174bf6fb3cf80"
+linux_x86_64_url = "https://github.com/chipsalliance/verible/releases/download/v0.0-4296-g0f262651/verible-v0.0-4296-g0f262651-linux-static-x86_64.tar.gz"
+linux_x86_64_sha256 = "8569defb891d2316067613ea00442af28a7a09d405d95b54c0c91f9942d26635"
+
+[gitleaks]
+version = "8.30.1"
+windows_x64_url = "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_windows_x64.zip"
+windows_x64_sha256 = "d29144deff3a68aa93ced33dddf84b7fdc26070add4aa0f4513094c8332afc4e"
+linux_x64_url = "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz"
+linux_x64_sha256 = "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+
+[cocotb]
+version = "2.0.1"
+sdist_sha256 = "69887748412ff43e98f8579ad6c0da1f6ff19a94d0c3b4d6da472d8e86784e82"
+
+[uv]
+version = "0.10.4"
+docker_image = "ghcr.io/astral-sh/uv:0.10.4"
+docker_digest = "sha256:4cac394b6b72846f8a85a7a0e577c6d61d4e17fe2ccee65d9451a8b3c9efb4ac"
+
+[python]
+core = "3.12"      # CLI / MCP venv (uv-managed CPython)
+sim = "ucrt64"     # cocotb venv on Windows: the MSYS2 ucrt64 python (VPI ABI)

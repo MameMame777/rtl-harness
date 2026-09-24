@@ -1,0 +1,42 @@
+# CODEOWNERS -- 後に書いた行ほど優先される。共通の既定を先に、領域ごとの行を後に書く。
+#
+# 個人アカウント運用のため、いまは全ての役割が @MameMame777。
+# Organization に移行したら次のチームに置き換える:
+#   リリース担当           -> @org/harness-release
+#   BUS 領域オーナー       -> @org/owners-bus
+#   プロセッサ領域オーナー -> @org/owners-cpu
+#   検証領域オーナー       -> @org/owners-verif
+# 承認ルール:
+#   - 領域内の変更は、その領域のオーナー 1 人以上が承認する
+#   - 共通部 (AGENTS.md, rules/common) はリリース担当と、影響を受ける領域のオーナー 1 人が承認する
+
+# 既定: リリース担当
+*                         @MameMame777
+
+# 共通部: リリース担当 + 全領域オーナー (うち 1 人の承認で可)
+/AGENTS.md                @MameMame777
+/rules/common/            @MameMame777
+/src/rtl_harness/sync.py  @MameMame777
+/scripts/sync/            @MameMame777
+
+# BUS 領域
+/docs/bus.md              @MameMame777
+/examples/bus/            @MameMame777
+/rules/bus/               @MameMame777
+/evals/bus/               @MameMame777
+
+# プロセッサ領域
+/docs/cpu.md              @MameMame777
+/examples/cpu/            @MameMame777
+/rules/cpu/               @MameMame777
+/evals/cpu/               @MameMame777
+
+# 検証領域 (テストハーネス, MCP ツール, 評価基盤, CI)
+/docs/verification.md     @MameMame777
+/examples/verif/          @MameMame777
+/tb/                      @MameMame777
+/mcp/                     @MameMame777
+/src/rtl_harness/         @MameMame777
+/evals/runner/            @MameMame777
+/evals/verif/             @MameMame777
+/.github/workflows/       @MameMame777

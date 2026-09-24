@@ -1,0 +1,47 @@
+name: "ルール提案"
+description: "新しい規則、または既存の規則の変更を提案する"
+title: "[rule] "
+labels: ["kind:rule", "harness", "stage:triage"]
+body:
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain
+      description: 領域（共通規則は release）
+      options: [bus, cpu, verif, release]
+    validations:
+      required: true
+  - type: textarea
+    id: rule
+    attributes:
+      label: 規則案
+      description: 1 行で言い切る（例 "always_ff の先頭は if (!rst_n)"）
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: 理由
+      description: なぜ揃えたいか、揃わないと何が起きるか
+    validations:
+      required: true
+  - type: dropdown
+    id: checkable
+    attributes:
+      label: 機械判定
+      description: Verible / Verilator / Python チェックで判定できるか
+      options: ["できる（rules/ 候補）", "難しい（examples / docs 候補）", "分からない"]
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: 既存 RTL への影響
+      description: 手元のプロジェクトで何件違反するか（`rtl-harness lint --json` の counts）
+  - type: checkboxes
+    id: rollout
+    attributes:
+      label: 導入段階
+      options:
+        - label: まず warning（マイナー版）で入れてよい
+        - label: 次のメジャー版で error にしてよい
