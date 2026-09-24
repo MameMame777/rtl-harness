@@ -14,7 +14,7 @@ license = { text = "MIT" }
 dependencies = []
 
 [project.optional-dependencies]
-sim = ["cocotb==2.0.1", "find_libpython==0.5.1", "pytest>=8,<9"]
+sim = ["cocotb==2.1.0", "find_libpython==0.5.1", "pytest>=8,<9"]
 mcp = ["mcp>=2.2,<3"]
 dev = ["ruff>=0.6", "pre-commit>=3.7", "pytest>=8,<9"]
 
