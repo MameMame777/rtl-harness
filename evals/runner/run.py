@@ -13,8 +13,9 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-import tomllib
 from pathlib import Path
+
+import tomllib
 
 HERE = Path(__file__).resolve().parent
 EVALS = HERE.parent
@@ -29,19 +30,30 @@ def list_tasks() -> list[str]:
     for domain in ("bus", "cpu", "verif"):
         d = EVALS / domain
         if d.is_dir():
-            out += [f"{domain}/{p.name}" for p in sorted(d.iterdir()) if p.is_dir() and (p / "task.md").is_file()]
+            out += [
+                f"{domain}/{p.name}"
+                for p in sorted(d.iterdir())
+                if p.is_dir() and (p / "task.md").is_file()
+            ]
     return out
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--model")
     ap.add_argument("--task")
     args = ap.parse_args(argv)
     cfg = load_config()
     if args.dry_run or not (args.model and args.task):
-        print(json.dumps({"models": sorted(cfg["models"]), "tasks": list_tasks(), "run": cfg["run"]}, indent=2))
+        print(
+            json.dumps(
+                {"models": sorted(cfg["models"]), "tasks": list_tasks(), "run": cfg["run"]},
+                indent=2,
+            )
+        )
         return 0
     print("evals: model runs are implemented in P4 (see evals/README.md)", file=sys.stderr)
     return 2

@@ -1,0 +1,17 @@
+<!-- {{header}} -->
+# Project instructions (GitHub Copilot)
+
+This project uses rtl-harness, checked out as the `{{harness_dir}}/` submodule. Copilot cannot
+import files, so the harness rules are inlined below; edit `{{harness_dir}}/AGENTS.md` and
+re-run `rtl-harness sync` instead of editing this file.
+
+Tools: the `rtl-harness` MCP server registered in `.vscode/mcp.json` exposes run_lint,
+run_sim, get_waveform and list_design (agent mode). Paths are relative to this project root.
+
+---
+
+{{agents_md}}
+
+---
+
+{{extra_instructions}}

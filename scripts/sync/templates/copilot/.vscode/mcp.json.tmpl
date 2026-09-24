@@ -1,0 +1,10 @@
+{
+  "_generated": "{{header}}",
+  "servers": {
+    "rtl-harness": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "--project", "${workspaceFolder}/{{harness_dir}}", "--no-sync", "python", "${workspaceFolder}/{{harness_dir}}/mcp/server.py"]
+    }
+  }
+}

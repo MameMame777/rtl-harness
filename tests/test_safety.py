@@ -21,7 +21,17 @@ def test_within_accepts_inside(tmp_path: Path):
 
 
 @pytest.mark.parametrize(
-    "bad", ["../x.sv", "rtl/../../x.sv", "/etc/passwd", "C:/Windows/system.ini"]
+    "bad",
+    [
+        "../x.sv",
+        "rtl/../../x.sv",
+        "/etc/passwd",
+        # a drive-letter path is absolute only on Windows; elsewhere it is a relative name
+        pytest.param(
+            "C:/Windows/system.ini",
+            marks=pytest.mark.skipif(os.name != "nt", reason="windows path"),
+        ),
+    ],
 )
 def test_within_rejects_outside(tmp_path: Path, bad: str):
     with pytest.raises(SafetyError):

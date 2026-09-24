@@ -1,0 +1,45 @@
+# {{header}}
+# Runs the harness checks (lint, sim, sync --check) for this project inside the rtl-harness
+# CI image. Read-only token; actions pinned by commit SHA.
+name: rtl-harness
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  harness:
+    name: harness (lint, sim, sync-check)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+          persist-credentials: false
+
+      - name: Pull the CI image, or build it from the harness Dockerfile
+        env:
+          CI_IMAGE: {{image}}
+        run: |
+          docker pull "$CI_IMAGE" || docker build -t "$CI_IMAGE" {{harness_dir}}
+
+      - name: lint, sim, sync --check
+        env:
+          CI_IMAGE: {{image}}
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work \
+            -e UV_PROJECT_ENVIRONMENT=/tmp/venv -e UV_LINK_MODE=copy -e CI=1 \
+            "$CI_IMAGE" bash -eo pipefail -c '
+              uv sync --project {{harness_dir}} --extra sim --extra mcp
+              uv run --project {{harness_dir}} rtl-harness lint
+              uv run --project {{harness_dir}} rtl-harness sim --all
+              uv run --project {{harness_dir}} rtl-harness sync --check
+            '

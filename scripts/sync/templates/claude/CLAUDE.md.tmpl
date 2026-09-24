@@ -1,0 +1,16 @@
+<!-- {{header}} -->
+# Project instructions (Claude Code)
+
+This project uses rtl-harness, checked out as the `{{harness_dir}}/` submodule. The rules,
+workflow and tools are defined there and imported below; do not restate them here.
+
+@{{harness_dir}}/AGENTS.md
+
+## This project
+
+- Design files: see `harness.toml` `[design].sources`; tests: `[sim].tests`.
+- Tools: the `rtl-harness` MCP server registered in `.mcp.json` exposes run_lint, run_sim,
+  get_waveform and list_design. All paths are relative to this project root.
+- Tickets: `uv run --project {{harness_dir}} rtl-harness ticket new --kind <bug|deviation|rule|tool> --domain <bus|cpu|verif> --title "..."`.
+
+{{extra_instructions}}
