@@ -15,7 +15,8 @@ $tv = Get-ToolVersions -Harness $Harness
 $tag = $tv.verible.tag
 $url = $tv.verible.win64_url
 $sha = $tv.verible.win64_sha256
-$dest = Join-Path $Harness '.tools\verible'
+$toolsRoot = if ($env:RTL_HARNESS_TOOLS) { $env:RTL_HARNESS_TOOLS } else { Join-Path $Harness '.tools' }
+$dest = Join-Path $toolsRoot 'verible'
 $lint = Join-Path $dest 'verible-verilog-lint.exe'
 
 if (-not $Force -and (Test-Path $lint)) {

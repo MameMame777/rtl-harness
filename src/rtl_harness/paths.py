@@ -83,7 +83,8 @@ def sim_python() -> Path:
 
 
 def tools_dir() -> Path:
-    return HARNESS_ROOT / ".tools"
+    env = os.environ.get("RTL_HARNESS_TOOLS")
+    return Path(env).expanduser() if env else HARNESS_ROOT / ".tools"
 
 
 def _exe(name: str) -> str:
@@ -91,7 +92,8 @@ def _exe(name: str) -> str:
 
 
 def find_tool(name: str, subdir: str) -> Path | None:
-    """A tool from <harness>/.tools/<subdir>[/bin] first, then PATH."""
+    """A tool from the tools dir (RTL_HARNESS_TOOLS, else <harness>/.tools) <subdir>[/bin]
+    first, then PATH. Several projects can share one tools dir through the variable."""
     for cand in (tools_dir() / subdir / _exe(name), tools_dir() / subdir / "bin" / _exe(name)):
         if cand.is_file():
             return cand

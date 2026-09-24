@@ -15,7 +15,8 @@ $tv = Get-ToolVersions -Harness $Harness
 $version = $tv.gitleaks.version
 $url = $tv.gitleaks.windows_x64_url
 $sha = $tv.gitleaks.windows_x64_sha256
-$dest = Join-Path $Harness '.tools\gitleaks'
+$toolsRoot = if ($env:RTL_HARNESS_TOOLS) { $env:RTL_HARNESS_TOOLS } else { Join-Path $Harness '.tools' }
+$dest = Join-Path $toolsRoot 'gitleaks'
 $exe = Join-Path $dest 'gitleaks.exe'
 
 if (-not $Force -and (Test-Path $exe)) {

@@ -6,7 +6,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TV="$ROOT/rules/common/tool-versions.toml"
-DEST="$ROOT/.tools/gitleaks"
+DEST="${RTL_HARNESS_TOOLS:-$ROOT/.tools}/gitleaks"
 
 read -r VERSION URL SHA < <(python3 - "$TV" <<'PY'
 import sys, tomllib

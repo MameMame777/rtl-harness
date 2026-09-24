@@ -4,7 +4,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEST="$ROOT/.tools/verible"
+DEST="${RTL_HARNESS_TOOLS:-$ROOT/.tools}/verible"
 
 read -r TAG URL SHA < <(python3 - "$ROOT/rules/common/tool-versions.toml" <<'PY'
 import sys, tomllib

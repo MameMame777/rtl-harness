@@ -73,6 +73,17 @@ def test_my_block():
                    test_dir=Path(__file__).parent)
 ```
 
+## 複数プロジェクトでツールを共有する
+
+既定では Verible / gitleaks は `harness/.tools`、cocotb 用 venv は `harness/.venv-sim` に、プロジェクトごとに置かれます。
+複数プロジェクトで 1 つを共有したいときは環境変数を設定してから `setup_toolchain.ps1` を実行します。
+
+| 変数 | 意味 |
+| --- | --- |
+| `RTL_HARNESS_TOOLS` | Verible / gitleaks の置き場（`install_verible.ps1` もここに入れる） |
+| `RTL_HARNESS_SIM_PYTHON` | cocotb / pytest を実行する python（ucrt64 由来の venv の `bin\python.exe`） |
+| `MSYS2_ROOT` | MSYS2 の場所（PATH に無いとき） |
+
 ## ハーネスの更新
 
 submodule のタグを進めるだけです。強制ルールは警告（マイナー版）→ エラー（メジャー版）の 2 段階で
