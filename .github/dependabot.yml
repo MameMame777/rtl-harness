@@ -10,6 +10,10 @@ updates:
     schedule:
       interval: weekly
     labels: [dependencies]
+    ignore:
+      # cocotb is pinned on purpose (rules/common/tool-versions.toml, static VPI build on
+      # Windows); it is bumped by hand together with the sdist sha256, never by a bot.
+      - dependency-name: cocotb
   - package-ecosystem: docker
     directory: /
     schedule:
