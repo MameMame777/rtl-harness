@@ -1,0 +1,40 @@
+# pre-commit hooks for the harness itself (a consumer project gets an equivalent file from
+# `rtl-harness sync`, with --project harness). All hooks are local so nothing is fetched at
+# commit time; the tools come from scripts/setup_toolchain.ps1.
+#
+#     uv run --project . pre-commit install
+repos:
+  - repo: local
+    hooks:
+      - id: rtl-harness-lint
+        name: rtl-harness lint (Verible + Verilator + custom checks)
+        entry: uv run --project . --no-sync rtl-harness lint
+        language: system
+        files: \.(sv|svh|v|vh)$
+        pass_filenames: true
+
+      - id: gitleaks-protect
+        name: gitleaks protect --staged
+        entry: uv run --project . --no-sync python scripts/ci/gitleaks_hook.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: hygiene
+        name: hygiene (no absolute paths / internal URLs / e-mails / IPs)
+        entry: uv run --project . --no-sync python scripts/ci/hygiene.py --files
+        language: system
+        types: [text]
+        pass_filenames: true
+
+      - id: ruff-check
+        name: ruff check
+        entry: uv run --project . --no-sync ruff check --fix
+        language: system
+        types: [python]
+
+      - id: ruff-format
+        name: ruff format
+        entry: uv run --project . --no-sync ruff format
+        language: system
+        types: [python]

@@ -1,0 +1,9 @@
+# Optional block registry: suites and engine overrides. A block is discovered from its
+# test_<block>.py (harness.toml [sim].tests); this file only adds metadata.
+
+[defaults]
+engine = "verilator"
+
+[blocks.smoke_counter]
+group = "smoke"
+suites = ["smoke"]

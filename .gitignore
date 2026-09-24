@@ -16,6 +16,7 @@ build/
 _exec/
 sim_build/
 results.xml
+*.result.xml
 *.vcd
 *.fst
 *.log

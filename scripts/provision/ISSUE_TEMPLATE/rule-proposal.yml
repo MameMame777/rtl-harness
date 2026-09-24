@@ -1,0 +1,35 @@
+name: "ルール提案"
+description: "規則の追加・変更の提案（harness へは rtl-harness ticket escalate で転記）"
+title: "[rule] "
+labels: ["kind:rule", "harness"]
+body:
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain
+      options: [bus, cpu, verif, release]
+    validations:
+      required: true
+  - type: textarea
+    id: rule
+    attributes:
+      label: 規則案（1 行で言い切る）
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: 理由
+    validations:
+      required: true
+  - type: dropdown
+    id: checkable
+    attributes:
+      label: 機械判定
+      options: ["できる（rules/ 候補）", "難しい（examples / docs 候補）", "分からない"]
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: 既存 RTL への影響（違反件数）

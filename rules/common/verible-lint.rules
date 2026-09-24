@@ -1,0 +1,22 @@
+# verible-verilog-lint --rules_config file.
+# One rule per line: +rule enables (with =param:value;... for parameters), -rule disables.
+# Verible's default rule set stays on; these lines add, tune or disable on top of it.
+# Severities (error vs warning) are NOT decided here but in rules.toml.
+# Verible reports at most one finding per token location: when two rules fire on the same
+# token (e.g. explicit-begin and always-comb on the same `always`), the second appears only
+# after the first is fixed. Verilator and the custom checks cover the gap.
+
++line-length=length:100
++parameter-name-style=localparam_style:ALL_CAPS;parameter_style:ALL_CAPS
++explicit-parameter-storage-type
++explicit-begin
++signal-name-style
++one-module-per-file
++suspicious-semicolon
++mismatched-labels
++instance-shadowing
++legacy-generate-region
++forbid-negative-array-dim
+
+# AXI / valid-ready ports carry protocol suffixes (_valid, _ready, _tdata), not _i/_o.
+-port-name-suffix

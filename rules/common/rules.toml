@@ -1,0 +1,53 @@
+# Severity map for every enforced rule. Lint status is "fail" only when an "error" fires.
+#
+# Two-stage rollout: a new rule enters as "warning" in a minor release and is raised to
+# "error" in the next major release. A consumer may only RAISE a severity
+# (harness.toml [lint].severity_overrides, keys like "verible:line-length").
+#
+# Keys: an exact rule name, a prefix ending in "*" (Verilator codes), or "default".
+
+[meta]
+version = "0.1.0"
+
+[severity.verible]
+default = "warning"
+always-comb = "error"
+always-comb-blocking = "error"
+always-ff-non-blocking = "error"
+case-missing-default = "error"
+module-filename = "error"
+one-module-per-file = "error"
+no-tabs = "error"
+no-trailing-spaces = "error"
+posix-eof = "error"
+forbid-defparam = "error"
+line-length = "error"
+parameter-name-style = "error"
+enum-name-style = "error"
+interface-name-style = "error"
+explicit-begin = "warning"
+signal-name-style = "warning"
+explicit-parameter-storage-type = "warning"
+syntax-error = "error"
+
+[severity.verilator]
+default = "warning"
+"WIDTH*" = "error"
+LATCH = "error"
+CASEINCOMPLETE = "error"
+CASEOVERLAP = "error"
+UNOPTFLAT = "error"
+BLKSEQ = "error"
+COMBDLY = "error"
+MULTIDRIVEN = "error"
+IMPLICIT = "error"
+"UNUSED*" = "warning"
+UNDRIVEN = "warning"
+ERROR = "error"
+
+[severity.custom]
+default = "error"
+timescale = "error"
+reset-style = "error"
+no-todo = "error"
+module-name-style = "warning"

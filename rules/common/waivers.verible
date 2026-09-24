@@ -1,0 +1,6 @@
+# Harness-wide Verible waivers (--waiver_files). Normally empty: a waiver is a documented
+# false positive, reviewed by the domain owner, never a way to silence a real finding.
+#
+# Syntax:
+#   waive --rule=<rule-name> --line=<n>[:<m>] --location=".*<file-regex>.*"
+#   waive --rule=<rule-name> --regex="<line-regex>"

@@ -1,0 +1,35 @@
+name: "ハーネスのツール不具合"
+description: "run_lint / run_sim / get_waveform / list_design / CLI の不具合（harness へは rtl-harness ticket escalate で転記）"
+title: "[tool] "
+labels: ["kind:tool", "domain:verif", "harness"]
+body:
+  - type: dropdown
+    id: tool
+    attributes:
+      label: Tool
+      options: [run_lint, run_sim, get_waveform, list_design, cli, sync, provision, ticket, setup]
+    validations:
+      required: true
+  - type: input
+    id: harness_version
+    attributes:
+      label: Harness version
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: 実行環境（`rtl-harness doctor` の出力）
+  - type: textarea
+    id: input
+    attributes:
+      label: 入力（コマンド / MCP の引数。パスは相対に）
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: 返ってきた JSON / エラー
+      render: json
+    validations:
+      required: true

@@ -1,0 +1,41 @@
+name: "RTL のバグ"
+description: "このプロジェクトの RTL / テストの不具合"
+title: "[bug] "
+labels: ["kind:bug"]
+body:
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain
+      description: 領域
+      options: [bus, cpu, verif]
+    validations:
+      required: true
+  - type: input
+    id: module
+    attributes:
+      label: モジュール / ファイル
+    validations:
+      required: true
+  - type: textarea
+    id: symptom
+    attributes:
+      label: 症状
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 再現手順
+      description: テスト名や `rtl-harness sim <block>` の結果
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する動作
+  - type: input
+    id: harness_version
+    attributes:
+      label: Harness version
+      description: submodule のタグ

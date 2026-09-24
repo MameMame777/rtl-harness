@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: rtl-harness 本体への報告
+    url: https://github.com/{{escalate_repo}}/issues/new/choose
+    about: AI の逸脱・規則・ツールの問題は、まずこのプロジェクトで `rtl-harness ticket new` を作り、`ticket escalate` で転記してください

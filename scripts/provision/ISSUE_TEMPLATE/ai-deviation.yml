@@ -1,0 +1,54 @@
+name: "AI の失敗・逸脱"
+description: "AI が書いた RTL が規約・お手本から外れた（harness へは rtl-harness ticket escalate で転記）"
+title: "[deviation] "
+labels: ["kind:deviation", "harness"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        `rtl-harness ticket new --kind deviation --attach-last` で下書きを作ると下の項目が埋まります。
+        harness 本体への報告は `rtl-harness ticket escalate <id>` で行います（自動でマスクされます）。
+  - type: dropdown
+    id: model
+    attributes:
+      label: Model
+      options: [claude, copilot, codex, qwen, other]
+    validations:
+      required: true
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain
+      options: [bus, cpu, verif]
+    validations:
+      required: true
+  - type: input
+    id: harness_version
+    attributes:
+      label: Harness version
+    validations:
+      required: true
+  - type: textarea
+    id: prompt
+    attributes:
+      label: 入力した指示
+    validations:
+      required: true
+  - type: textarea
+    id: rtl
+    attributes:
+      label: 出力された RTL（最小再現）
+      render: systemverilog
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待した書き方
+    validations:
+      required: true
+  - type: textarea
+    id: tool_json
+    attributes:
+      label: run_lint / run_sim の結果 (JSON)
+      render: json

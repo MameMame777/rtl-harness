@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "rtl-harness": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "--project", "${workspaceFolder}", "--no-sync", "python", "${workspaceFolder}/mcp/server.py"]
+    }
+  }
+}

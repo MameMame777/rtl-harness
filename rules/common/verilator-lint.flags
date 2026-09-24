@@ -1,0 +1,11 @@
+# Flags for `verilator --lint-only` (one or more per line; # starts a comment).
+# Warnings are never fatal here: rules.toml decides which codes are errors.
+--lint-only
+-Wall
+-Wno-fatal
+--language 1800-2017
+--error-limit 200
+# Every design file is linted in one invocation, so several top modules are expected.
+-Wno-MULTITOP
+# Module name == file name is enforced by Verible (module-filename); avoid a duplicate finding.
+-Wno-DECLFILENAME

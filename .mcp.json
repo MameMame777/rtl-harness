@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "rtl-harness": {
+      "command": "uv",
+      "args": ["run", "--project", ".", "--no-sync", "python", "mcp/server.py"]
+    }
+  }
+}
