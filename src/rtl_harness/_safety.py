@@ -22,12 +22,44 @@ _NAME_RX = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,79}")
 # Environment variables a child process may inherit. Everything else is dropped so a stray
 # token or credential in the parent environment never reaches a tool or a test.
 _ENV_ALLOW_EXACT = {
-    "PATH", "PATHEXT", "COMSPEC", "SYSTEMROOT", "SystemRoot", "SYSTEMDRIVE", "SystemDrive",
-    "WINDIR", "TEMP", "TMP", "TMPDIR", "HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA",
-    "PROGRAMDATA", "ProgramData", "LANG", "LC_ALL", "LC_CTYPE", "TZ", "PWD", "SHELL", "TERM",
-    "USERNAME", "USER", "LOGNAME", "NUMBER_OF_PROCESSORS", "PROCESSOR_ARCHITECTURE",
-    "PYTHONIOENCODING", "PYTHONUTF8", "PYTHONPATH", "PYTHONDONTWRITEBYTECODE",
-    "MSYS2_ROOT", "VERILATOR_ROOT", "GITHUB_ACTIONS", "CI", "NO_COLOR",
+    "PATH",
+    "PATHEXT",
+    "COMSPEC",
+    "SYSTEMROOT",
+    "SystemRoot",
+    "SYSTEMDRIVE",
+    "SystemDrive",
+    "WINDIR",
+    "TEMP",
+    "TMP",
+    "TMPDIR",
+    "HOME",
+    "USERPROFILE",
+    "APPDATA",
+    "LOCALAPPDATA",
+    "PROGRAMDATA",
+    "ProgramData",
+    "LANG",
+    "LC_ALL",
+    "LC_CTYPE",
+    "TZ",
+    "PWD",
+    "SHELL",
+    "TERM",
+    "USERNAME",
+    "USER",
+    "LOGNAME",
+    "NUMBER_OF_PROCESSORS",
+    "PROCESSOR_ARCHITECTURE",
+    "PYTHONIOENCODING",
+    "PYTHONUTF8",
+    "PYTHONPATH",
+    "PYTHONDONTWRITEBYTECODE",
+    "MSYS2_ROOT",
+    "VERILATOR_ROOT",
+    "GITHUB_ACTIONS",
+    "CI",
+    "NO_COLOR",
 }
 _ENV_ALLOW_PREFIX = ("COCOTB_", "RTL_HARNESS_", "UV_", "VIRTUAL_ENV", "MSYSTEM", "GH_", "GITHUB_")
 
@@ -50,8 +82,12 @@ def rel(root: Path, path: Path) -> str:
     return path.resolve().relative_to(Path(root).resolve()).as_posix()
 
 
-def safe_glob(root: Path, patterns: list[str], exclude: list[str] | None = None,
-              suffixes: tuple[str, ...] | None = SOURCE_SUFFIXES) -> list[Path]:
+def safe_glob(
+    root: Path,
+    patterns: list[str],
+    exclude: list[str] | None = None,
+    suffixes: tuple[str, ...] | None = SOURCE_SUFFIXES,
+) -> list[Path]:
     """Expand glob patterns under *root* only. Symlinked files that resolve outside the
     project are skipped; excluded patterns match the project-relative posix path."""
     root_r = Path(root).resolve()
@@ -82,11 +118,17 @@ def check_name(name: str, what: str = "name") -> str:
     return name
 
 
-def clean_env(extra: dict[str, str] | None = None, path_prepend: str | None = None) -> dict[str, str]:
+def clean_env(
+    extra: dict[str, str] | None = None, path_prepend: str | None = None
+) -> dict[str, str]:
     """Allow-listed copy of the environment for child processes, plus *extra* entries."""
     env: dict[str, str] = {}
     for k, v in os.environ.items():
-        if k in _ENV_ALLOW_EXACT or k.upper() in _ENV_ALLOW_EXACT or k.startswith(_ENV_ALLOW_PREFIX):
+        if (
+            k in _ENV_ALLOW_EXACT
+            or k.upper() in _ENV_ALLOW_EXACT
+            or k.startswith(_ENV_ALLOW_PREFIX)
+        ):
             env[k] = v
     if extra:
         env.update(extra)

@@ -46,9 +46,18 @@ def have_verilator() -> bool:
         return False
 
 
-requires_verible = pytest.mark.skipif(not have_tool("verible-verilog-lint", "verible"), reason="verible not installed")
+requires_verible = pytest.mark.skipif(
+    not have_tool("verible-verilog-lint", "verible"), reason="verible not installed"
+)
 requires_verilator = pytest.mark.skipif(not have_verilator(), reason="verilator not found")
 requires_sim = pytest.mark.skipif(
-    not (have_verilator() and (os.environ.get("RTL_HARNESS_SIM_PYTHON") or (HARNESS / ".venv-sim").exists() or os.name != "nt")),
+    not (
+        have_verilator()
+        and (
+            os.environ.get("RTL_HARNESS_SIM_PYTHON")
+            or (HARNESS / ".venv-sim").exists()
+            or os.name != "nt"
+        )
+    ),
     reason="simulation environment not set up",
 )

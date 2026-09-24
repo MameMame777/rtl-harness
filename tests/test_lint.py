@@ -26,16 +26,26 @@ endmodule
 
 # --- parsers ---------------------------------------------------------------------------------
 
+
 def test_verible_regex():
-    m = lint._VERIBLE_RX.match("rtl/a.sv:12:5: Use 'always_comb' instead of 'always @*'. [Style: combinational-logic] [always-comb]")
+    m = lint._VERIBLE_RX.match(
+        "rtl/a.sv:12:5: Use 'always_comb' instead of 'always @*'. [Style: combinational-logic] [always-comb]"
+    )
     assert m and m.group("rule") == "always-comb" and m.group("line") == "12"
-    m = lint._VERIBLE_RX.match("rtl/a.sv:3:1-9: syntax error at token \"foo\"")
+    m = lint._VERIBLE_RX.match('rtl/a.sv:3:1-9: syntax error at token "foo"')
     assert m and m.group("rule") is None
 
 
 def test_verilator_regex():
-    m = lint._VERILATOR_RX.match("%Warning-WIDTHEXPAND: rtl/a.sv:10:22: Operator ADD expects 8 bits")
-    assert m and m.group("code") == "WIDTHEXPAND" and m.group("file") == "rtl/a.sv" and m.group("line") == "10"
+    m = lint._VERILATOR_RX.match(
+        "%Warning-WIDTHEXPAND: rtl/a.sv:10:22: Operator ADD expects 8 bits"
+    )
+    assert (
+        m
+        and m.group("code") == "WIDTHEXPAND"
+        and m.group("file") == "rtl/a.sv"
+        and m.group("line") == "10"
+    )
     m = lint._VERILATOR_RX.match("%Error: C:/proj/rtl/a.sv:3:1: syntax error, unexpected endmodule")
     assert m and m.group("kind") == "Error" and m.group("file") == "C:/proj/rtl/a.sv"
     m = lint._VERILATOR_RX.match("%Error: Cannot find file containing module: 'foo'")
@@ -43,6 +53,7 @@ def test_verilator_regex():
 
 
 # --- custom checks ---------------------------------------------------------------------------
+
 
 def _checks(cfg):
     return {m.RULE: m for m in rules.load_checks(cfg)}
@@ -65,10 +76,14 @@ def test_reset_style_rejects_active_high():
     text = "always_ff @(posedge clk) begin\n  if (rst) q <= 0;\nend\n"
     mod = _checks(load_config(HARNESS))["reset-style"]
     assert any("if (!rst_n)" in f["message"] for f in mod.check(Path("x.sv"), text))
-    assert mod.check(Path("x.sv"), "always_ff @(posedge clk) begin\n  if (!sys_rst_n) q <= 0;\nend\n") == []
+    assert (
+        mod.check(Path("x.sv"), "always_ff @(posedge clk) begin\n  if (!sys_rst_n) q <= 0;\nend\n")
+        == []
+    )
 
 
 # --- severities ------------------------------------------------------------------------------
+
 
 def test_severity_map_and_overrides(consumer: Path):
     cfg = load_config(consumer)
@@ -78,7 +93,8 @@ def test_severity_map_and_overrides(consumer: Path):
     assert rules.severity_for(sev, "verilator", "WIDTHEXPAND") == "error"
     assert rules.severity_for(sev, "verilator", "UNUSEDSIGNAL") == "warning"
     (consumer / "harness.toml").write_text(
-        (consumer / "harness.toml").read_text() + '\n[lint]\nseverity_overrides = {"verible:explicit-begin" = "error"}\n'
+        (consumer / "harness.toml").read_text()
+        + '\n[lint]\nseverity_overrides = {"verible:explicit-begin" = "error"}\n'
     )
     cfg = load_config(consumer)
     assert rules.severity_for(rules.load_severities(cfg), "verible", "explicit-begin") == "error"
@@ -86,13 +102,15 @@ def test_severity_map_and_overrides(consumer: Path):
 
 def test_override_cannot_lower(consumer: Path):
     (consumer / "harness.toml").write_text(
-        (consumer / "harness.toml").read_text() + '\n[lint]\nseverity_overrides = {"verible:always-comb" = "warning"}\n'
+        (consumer / "harness.toml").read_text()
+        + '\n[lint]\nseverity_overrides = {"verible:always-comb" = "warning"}\n'
     )
     with pytest.raises(ConfigError):
         rules.load_severities(load_config(consumer))
 
 
 # --- the real pipeline -----------------------------------------------------------------------
+
 
 @requires_verible
 @requires_verilator

@@ -1,6 +1,13 @@
 # CI -- runs on every PR and on pushes to main.
-# P0: config sanity only. P1 adds lint / sim / lint-off / doctor jobs inside the CI container.
-# Security: read-only token by default, actions pinned by commit SHA, no pull_request_target.
+#
+#   sanity    config files parse, AGENTS.md stays short                  (ubuntu, seconds)
+#   harness   lint + sim + doctor inside the CI image                    (ubuntu + docker)
+#   lint-off  newly added lint suppressions need a domain owner's label  (ubuntu, seconds)
+#
+# The CI image (Dockerfile, published by image.yml to GHCR) is pulled; when it is not
+# available yet (first push, or a fork) it is built locally from the same Dockerfile so the
+# result is identical. Security: read-only token by default, actions pinned by commit SHA,
+# no pull_request_target, nothing from the PR is executed outside the container.
 name: CI
 
 on:
@@ -14,6 +21,9 @@ permissions:
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  CI_IMAGE: ghcr.io/${{ github.repository_owner }}/rtl-harness-ci:latest
 
 jobs:
   sanity:
@@ -47,9 +57,108 @@ jobs:
       - name: AGENTS.md stays within 100 lines
         run: |
           if [ -f AGENTS.md ]; then
-            n=$(wc -l < AGENTS.md)
-            echo "AGENTS.md: $n lines"
+            n=$(wc -l < AGENTS.md); echo "AGENTS.md: $n lines"
             [ "$n" -le 100 ] || { echo "AGENTS.md exceeds 100 lines"; exit 1; }
           else
             echo "AGENTS.md not present yet (P2)"
+          fi
+
+  harness:
+    name: harness (lint, sim, doctor)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Log in to GHCR (read)
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull the CI image, or build it from the Dockerfile
+        run: |
+          if docker pull "$CI_IMAGE"; then
+            echo "using $CI_IMAGE"
+          else
+            echo "image not available: building locally"
+            docker build -t "$CI_IMAGE" .
+          fi
+
+      - name: Unit tests, lint, sim, doctor (inside the image)
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work \
+            -e UV_PROJECT_ENVIRONMENT=/tmp/venv -e UV_LINK_MODE=copy -e CI=1 \
+            "$CI_IMAGE" bash -eo pipefail -c '
+              uv sync --extra sim --extra mcp --extra dev
+              uv run pytest tests -q -p no:cacheprovider
+              uv run rtl-harness doctor
+              uv run rtl-harness lint --json > /work/.harness/lint.json
+              uv run rtl-harness sim --all --json > /work/.harness/sim.json
+            '
+
+      - name: Summarise
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          for name in ("lint", "sim"):
+              p = pathlib.Path(".harness") / f"{name}.json"
+              if not p.is_file():
+                  print(f"{name}: no result"); continue
+              r = json.loads(p.read_text())
+              if name == "lint":
+                  print(f"lint: {r['status']} errors={r['lint']['counts']['error']} warnings={r['lint']['counts']['warning']} files={len(r['source']['files'])}")
+              else:
+                  print(f"sim: {r['status']} blocks={len(r['blocks'])} failed={r['failed_blocks']}")
+                  for b in r["blocks"]:
+                      print(f"  {b['source']['block']}: {b['status']} passed={b['passed']} failed={b['failed']}")
+          PY
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: harness-logs-${{ github.run_number }}
+          path: |
+            .harness/lint.json
+            .harness/sim.json
+            .harness/logs/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  lint-off:
+    name: lint-off detection
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Detect lint suppressions added in this PR
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          APPROVED: ${{ contains(github.event.pull_request.labels.*.name, 'lint-off-approved') }}
+        run: |
+          set +e
+          PYTHONPATH=src python3 -m rtl_harness lintoff --range "origin/$BASE_REF...HEAD" --no-untracked --fail
+          rc=$?
+          set -e
+          if [ "$rc" != "0" ]; then
+            if [ "$APPROVED" = "true" ]; then
+              echo "lint suppressions added, but the PR carries the lint-off-approved label"
+            else
+              echo "::error::lint suppressions (lint_off / waive) were added; a domain owner must add the lint-off-approved label"
+              exit 1
+            fi
           fi

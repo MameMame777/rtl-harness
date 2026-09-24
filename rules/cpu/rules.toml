@@ -1,0 +1,5 @@
+# Processor domain: severities for the domain's custom checks (rules/cpu/checks/*.py).
+# Merged on top of rules/common/rules.toml when harness.toml [domains].active contains "cpu".
+
+[severity.custom]
+unique-case = "warning"

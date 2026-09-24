@@ -23,11 +23,15 @@ def _lint_text(r: dict) -> str:
         loc = f"{f['file']}:{f['line']}:{f['col']}" if f["file"] else "(global)"
         lines.append(f"{loc}: {f['severity']}: {f['message']} [{f['tool']}/{f['rule']}]")
     for c in r["formatter"]["changed"]:
-        lines.append(f"{c}: {'formatted' if r['formatter']['fixed'] else 'needs formatting (run with --fix)'}")
+        lines.append(
+            f"{c}: {'formatted' if r['formatter']['fixed'] else 'needs formatting (run with --fix)'}"
+        )
     for s in r["lint_off_added"]:
         lines.append(f"{s['file']}:{s['line']}: lint suppression added: {s['text']}")
     c = r["lint"]["counts"]
-    lines.append(f"lint: {r['status'].upper()}  errors={c['error']} warnings={c['warning']} files={len(r['source']['files'])}")
+    lines.append(
+        f"lint: {r['status'].upper()}  errors={c['error']} warnings={c['warning']} files={len(r['source']['files'])}"
+    )
     return "\n".join(lines)
 
 
@@ -44,7 +48,10 @@ def cmd_lintoff(args) -> int:
 
     root = paths.consumer_root()
     found = lintoff.scan(root, args.range, None, include_untracked=not args.no_untracked)
-    _print_json(found) if args.json else print("\n".join(f"{f['file']}:{f['line']}: {f['text']}" for f in found) or "no lint suppressions added")
+    _print_json(found) if args.json else print(
+        "\n".join(f"{f['file']}:{f['line']}: {f['text']}" for f in found)
+        or "no lint suppressions added"
+    )
     return 1 if found and args.fail else 0
 
 
@@ -65,8 +72,12 @@ def cmd_sim(args) -> int:
             _print_json(r)
         else:
             for b in r["blocks"]:
-                print(f"{b['source']['block']:28s} {b['status'].upper():12s} passed={b['passed']} failed={b['failed']} {b['duration_s']:.1f}s")
-            print(f"sim: {r['status'].upper()}  blocks={len(r['blocks'])} failed={r['failed_blocks']}")
+                print(
+                    f"{b['source']['block']:28s} {b['status'].upper():12s} passed={b['passed']} failed={b['failed']} {b['duration_s']:.1f}s"
+                )
+            print(
+                f"sim: {r['status'].upper()}  blocks={len(r['blocks'])} failed={r['failed_blocks']}"
+            )
         return 0 if r["status"] == "pass" else 1
     if not args.block:
         print("sim: give a block name or --all", file=sys.stderr)
@@ -75,11 +86,16 @@ def cmd_sim(args) -> int:
     if args.json:
         _print_json(r)
     else:
-        print(f"sim {args.block}: {r['status'].upper()}  passed={r['passed']} failed={r['failed']} {r['duration_s']:.1f}s")
+        print(
+            f"sim {args.block}: {r['status'].upper()}  passed={r['passed']} failed={r['failed']} {r['duration_s']:.1f}s"
+        )
         if r.get("first_failure"):
             ff = r["first_failure"]
             print(f"  first failure: {ff['test']}: {ff['message']}")
-        print(f"  log: {r['log_path']}" + (f"\n  waves: {r['waveform_path']}" if r.get("waveform_path") else ""))
+        print(
+            f"  log: {r['log_path']}"
+            + (f"\n  waves: {r['waveform_path']}" if r.get("waveform_path") else "")
+        )
     return 0 if r["status"] == "pass" else 1
 
 
@@ -90,10 +106,15 @@ def cmd_provision(args) -> int:
     cfg = load_config()
     missing = plan(cfg)
     if args.check or args.dry_run:
-        _print_json(missing) if args.json else print("\n".join(f"missing: {m['path']}  ({m['why']})" for m in missing) or "nothing to provision")
+        _print_json(missing) if args.json else print(
+            "\n".join(f"missing: {m['path']}  ({m['why']})" for m in missing)
+            or "nothing to provision"
+        )
         return 1 if (missing and args.check) else 0
     added = apply(cfg, missing)
-    _print_json(added) if args.json else print("\n".join(f"added: {a}" for a in added) or "nothing to provision")
+    _print_json(added) if args.json else print(
+        "\n".join(f"added: {a}" for a in added) or "nothing to provision"
+    )
     return 0
 
 
@@ -111,24 +132,34 @@ def cmd_sync(args) -> int:
 
 def cmd_stub(name: str):
     def _run(args) -> int:
-        print(f"{name}: not implemented in this pass (see docs/tool-schema.md for the contract)", file=sys.stderr)
+        print(
+            f"{name}: not implemented in this pass (see docs/tool-schema.md for the contract)",
+            file=sys.stderr,
+        )
         return 2
+
     return _run
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="rtl-harness", description="Shared AI-agent harness for RTL design.")
+    p = argparse.ArgumentParser(
+        prog="rtl-harness", description="Shared AI-agent harness for RTL design."
+    )
     p.add_argument("--version", action="version", version=f"rtl-harness {__version__}")
     sub = p.add_subparsers(dest="command", required=True)
 
     s = sub.add_parser("lint", help="format check + Verible + Verilator + custom checks")
-    s.add_argument("files", nargs="*", help="project-relative files or directories (default: all design files)")
+    s.add_argument(
+        "files", nargs="*", help="project-relative files or directories (default: all design files)"
+    )
     s.add_argument("--fix", action="store_true", help="rewrite files with the formatter")
     s.add_argument("--json", action="store_true")
     s.set_defaults(func=cmd_lint)
 
     s = sub.add_parser("lintoff", help="list lint suppressions added since a git ref")
-    s.add_argument("--range", default="HEAD", help="git ref or A...B range (default HEAD = working tree)")
+    s.add_argument(
+        "--range", default="HEAD", help="git ref or A...B range (default HEAD = working tree)"
+    )
     s.add_argument("--no-untracked", action="store_true")
     s.add_argument("--fail", action="store_true", help="exit 1 when any suppression was added")
     s.add_argument("--json", action="store_true")

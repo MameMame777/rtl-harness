@@ -12,8 +12,14 @@ from .config import Config, load_config
 from .errors import SafetyError
 
 
-def get_waveform(waveform_path: str, signals: list[str], t_start: int = 0, t_end: int | None = None,
-                 max_changes: int = 200, cfg: Config | None = None) -> dict:
+def get_waveform(
+    waveform_path: str,
+    signals: list[str],
+    t_start: int = 0,
+    t_end: int | None = None,
+    max_changes: int = 200,
+    cfg: Config | None = None,
+) -> dict:
     cfg = cfg or load_config()
     p = within(cfg.root, waveform_path)
     runtime = cfg.runtime.resolve()

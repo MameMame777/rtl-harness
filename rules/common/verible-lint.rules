@@ -14,7 +14,6 @@
 +one-module-per-file
 +suspicious-semicolon
 +mismatched-labels
-+instance-shadowing
 +legacy-generate-region
 +forbid-negative-array-dim
 

@@ -88,8 +88,13 @@ def build_server() -> MCPServer:
             "(Not implemented yet in this release: answers status=unimplemented.)"
         ),
     )
-    def get_waveform(waveform_path: str, signals: list[str], t_start: int = 0, t_end: int | None = None,
-                     max_changes: int = 200) -> dict[str, Any]:
+    def get_waveform(
+        waveform_path: str,
+        signals: list[str],
+        t_start: int = 0,
+        t_end: int | None = None,
+        max_changes: int = 200,
+    ) -> dict[str, Any]:
         from rtl_harness.wave import get_waveform as _get_waveform
 
         return _guard(lambda: _get_waveform(waveform_path, signals, t_start, t_end, max_changes))

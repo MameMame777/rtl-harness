@@ -32,7 +32,9 @@ EXCLUDE_PREFIXES = (
 
 CHECKS: dict[str, re.Pattern[str]] = {
     "hardcoded-path": re.compile(r"([A-Z]:\\|/home/[a-z]|/Users/[A-Za-z])[A-Za-z0-9_./\\-]{3,}"),
-    "internal-url": re.compile(r"(?i)(https?|ftp)://[a-z0-9._-]+\.(local|internal|corp|intranet|lan)\b"),
+    "internal-url": re.compile(
+        r"(?i)(https?|ftp)://[a-z0-9._-]+\.(local|internal|corp|intranet|lan)\b"
+    ),
     "email": re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
     "public-ip": re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b"),
 }
@@ -69,7 +71,15 @@ def scan_line(path: str, lineno: int, text: str) -> list[tuple[str, str, int, st
 
 
 def _git(*args: str) -> str:
-    return subprocess.run(["git", *args], cwd=ROOT, check=True, capture_output=True, text=True, encoding="utf-8", errors="replace").stdout
+    return subprocess.run(
+        ["git", *args],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    ).stdout
 
 
 def scan_diff(rng: str) -> list[tuple[str, str, int, str]]:
@@ -109,7 +119,9 @@ def scan_files(paths: list[str]) -> list[tuple[str, str, int, str]]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--diff", metavar="RANGE", help="scan added lines of `git diff RANGE`")
     g.add_argument("--all", action="store_true", help="scan every tracked text file")
@@ -136,7 +148,9 @@ def main(argv: list[str] | None = None) -> int:
         lines.append(f"| {name} | {path} | {lineno} | `{token}` |")
     if args.report_file:
         Path(args.report_file).write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"hygiene: {len(findings)} finding(s). Use placeholders, or mark a justified line with '{SKIP_MARKER}'.")
+    print(
+        f"hygiene: {len(findings)} finding(s). Use placeholders, or mark a justified line with '{SKIP_MARKER}'."
+    )
     return 1
 
 

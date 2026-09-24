@@ -1,12 +1,12 @@
 """AXI4-Stream helpers for ports named <prefix>_t{valid,ready,data,last,user}: a sink that
 drives tready (optionally with backpressure), a monitor that records accepted beats, and a
 source that drives a slave interface honouring tready. Only that subset is modelled (no
-tstrb / tid / tdest)."""
+tstrb / tid / tdest). Sampling convention: see valid_ready.py."""
 
 from __future__ import annotations
 
 import cocotb
-from cocotb.triggers import ReadOnly, RisingEdge
+from cocotb.triggers import RisingEdge
 
 from .gap import GapPolicy, default_gap_policy
 
@@ -33,13 +33,14 @@ class AxisMonitor:
     async def _run(self) -> None:
         while True:
             await RisingEdge(self.clk)
-            await ReadOnly()
             if int(self.tvalid.value) == 1 and int(self.tready.value) == 1:
-                self.beats.append({
-                    "data": int(self.tdata.value),
-                    "last": int(self.tlast.value) if self.tlast is not None else 0,
-                    "user": int(self.tuser.value) if self.tuser is not None else 0,
-                })
+                self.beats.append(
+                    {
+                        "data": int(self.tdata.value),
+                        "last": int(self.tlast.value) if self.tlast is not None else 0,
+                        "user": int(self.tuser.value) if self.tuser is not None else 0,
+                    }
+                )
 
 
 class AxisSink:
@@ -73,7 +74,7 @@ class AxisSink:
 
 
 class AxisSource:
-    """Drives an AXIS slave input, honouring tready."""
+    """Drives an AXIS slave input, honouring tready; beats are offered back to back."""
 
     def __init__(self, dut, clk, prefix: str = "s_axis") -> None:
         self.clk = clk
@@ -89,10 +90,15 @@ class AxisSource:
         if self.tlast is not None:
             self.tlast.value = 0
 
-    async def send(self, data: int, last: int = 0, user: int = 0, gap_policy: GapPolicy | None = None) -> None:
+    async def send(
+        self, data: int, last: int = 0, user: int = 0, gap_policy: GapPolicy | None = None
+    ) -> None:
         pol = gap_policy if gap_policy is not None else default_gap_policy()
-        for _ in range(pol.next_gap() if pol.active else 0):
-            await RisingEdge(self.clk)
+        gap = pol.next_gap() if pol.active else 0
+        if gap:
+            self.tvalid.value = 0
+            for _ in range(gap):
+                await RisingEdge(self.clk)
         self.tdata.value = data
         self.tvalid.value = 1
         if self.tlast is not None:
@@ -101,12 +107,8 @@ class AxisSource:
             self.tuser.value = int(user)
         while True:
             await RisingEdge(self.clk)
-            await ReadOnly()
             if self.tready is None or int(self.tready.value) == 1:
                 break
-            await RisingEdge(self.clk)
-            self.tvalid.value = 1
-        await RisingEdge(self.clk)
         self.tvalid.value = 0
         if self.tlast is not None:
             self.tlast.value = 0

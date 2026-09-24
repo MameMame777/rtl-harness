@@ -1,0 +1,6 @@
+# BUS domain: severities for the domain's custom checks (rules/bus/checks/*.py).
+# Merged on top of rules/common/rules.toml when harness.toml [domains].active contains "bus".
+
+[severity.custom]
+valid-depends-on-ready = "error"
+combinational-ready-path = "warning"

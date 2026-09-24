@@ -21,7 +21,22 @@ def test_provision_dry_run_and_apply(capsys, consumer: Path):
 
 
 def test_ticket_and_sync_stub(capsys, consumer: Path):
-    assert main(["ticket", "new", "--kind", "bug", "--domain", "cpu", "--title", "cli ticket", "--no-submit"]) == 0
+    assert (
+        main(
+            [
+                "ticket",
+                "new",
+                "--kind",
+                "bug",
+                "--domain",
+                "cpu",
+                "--title",
+                "cli ticket",
+                "--no-submit",
+            ]
+        )
+        == 0
+    )
     assert main(["ticket", "list"]) == 0
     assert "cli ticket" in capsys.readouterr().out
     assert main(["sync", "--json"]) == 0

@@ -20,7 +20,12 @@ def _try(fn, *args):
 
 
 def report() -> dict:
-    out: dict = {"harness_version": __version__, "harness_root": str(paths.harness_root()), "python": sys.version.split()[0], "problems": []}
+    out: dict = {
+        "harness_version": __version__,
+        "harness_root": str(paths.harness_root()),
+        "python": sys.version.split()[0],
+        "problems": [],
+    }
     root, err = _try(paths.consumer_root)
     out["consumer_root"] = str(root) if root else None
     if err:
@@ -78,12 +83,16 @@ def report() -> dict:
 
 
 def render(r: dict) -> str:
-    lines = [f"rtl-harness {r['harness_version']}  (python {r['python']})",
-             f"  harness root : {r['harness_root']}",
-             f"  consumer root: {r.get('consumer_root')}"]
+    lines = [
+        f"rtl-harness {r['harness_version']}  (python {r['python']})",
+        f"  harness root : {r['harness_root']}",
+        f"  consumer root: {r.get('consumer_root')}",
+    ]
     if r.get("config"):
         c = r["config"]
-        lines.append(f"  config       : self={c['self_consumption']} domains={c['domains']} design_files={c['design_files']} blocks={c['test_blocks']}")
+        lines.append(
+            f"  config       : self={c['self_consumption']} domains={c['domains']} design_files={c['design_files']} blocks={c['test_blocks']}"
+        )
     for k, v in r.get("tools", {}).items():
         lines.append(f"  {k:22s}: {v or 'MISSING'}")
     if r.get("agents_md_lines") is not None:

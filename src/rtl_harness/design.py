@@ -11,7 +11,9 @@ from ._safety import rel, within
 from .config import Config, design_files, load_config
 
 
-def list_design(files: list[str] | None = None, top: str | None = None, cfg: Config | None = None) -> dict:
+def list_design(
+    files: list[str] | None = None, top: str | None = None, cfg: Config | None = None
+) -> dict:
     cfg = cfg or load_config()
     targets = [within(cfg.root, f) for f in files] if files else design_files(cfg)
     return {

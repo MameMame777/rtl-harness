@@ -22,7 +22,14 @@ async def reset_active_low(clk, rst_n, cycles: int = 8, post: int = 2) -> None:
         await ClockCycles(clk, post)
 
 
-async def bringup(dut, clk: str = "clk", rst: str = "rst_n", period_ns: float = 10.0, cycles: int = 8, post: int = 2):
+async def bringup(
+    dut,
+    clk: str = "clk",
+    rst: str = "rst_n",
+    period_ns: float = 10.0,
+    cycles: int = 8,
+    post: int = 2,
+):
     """Start the clock and apply the synchronous active-low reset. Returns (clk, rst_n)."""
     clk_sig = getattr(dut, clk)
     rst_sig = getattr(dut, rst)
@@ -31,7 +38,15 @@ async def bringup(dut, clk: str = "clk", rst: str = "rst_n", period_ns: float = 
     return clk_sig, rst_sig
 
 
-async def bringup_dual(dut, clk_a: str, rst_a: str, clk_b: str, rst_b: str, period_a_ns: float = 10.0, period_b_ns: float = 14.0):
+async def bringup_dual(
+    dut,
+    clk_a: str,
+    rst_a: str,
+    clk_b: str,
+    rst_b: str,
+    period_a_ns: float = 10.0,
+    period_b_ns: float = 14.0,
+):
     """Two-clock bring-up for CDC blocks. Both clocks start first, then the resets release one
     after the other so neither domain samples the other while still in reset."""
     ca, ra = getattr(dut, clk_a), getattr(dut, rst_a)

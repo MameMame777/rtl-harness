@@ -27,7 +27,14 @@ from . import site as cs
 
 VPI_LIB_NAME = "libcocotbvpi_verilator.a"
 
-_DEFINES = ["-DCOCOTBVPI_EXPORTS=1", "-DVERILATOR=1", "-D__STDC_FORMAT_MACROS=1", "-DWIN32=1", "-DPLI_DLLISPEC=", "-DPLI_DLLESPEC="]
+_DEFINES = [
+    "-DCOCOTBVPI_EXPORTS=1",
+    "-DVERILATOR=1",
+    "-D__STDC_FORMAT_MACROS=1",
+    "-DWIN32=1",
+    "-DPLI_DLLISPEC=",
+    "-DPLI_DLLESPEC=",
+]
 _CFLAGS = ["-O2", "-std=c++17", "-fpermissive"]
 
 
@@ -45,7 +52,9 @@ def _libs_dir() -> Path:
 
 def _tool_version(exe: str, *args: str) -> str:
     try:
-        out = subprocess.run([exe, *(args or ("--version",))], capture_output=True, text=True, check=False)
+        out = subprocess.run(
+            [exe, *(args or ("--version",))], capture_output=True, text=True, check=False
+        )
         return (out.stdout or out.stderr).splitlines()[0].strip()
     except Exception as exc:  # noqa: BLE001 - diagnostic only
         return f"<{exe}: {exc}>"
@@ -93,7 +102,7 @@ def _vpi_source_dir(version: str) -> Path:
         prefix = f"cocotb-{version}/"
         members = [m for m in tf.getmembers() if m.name.startswith(prefix) and ".." not in m.name]
         for m in members:
-            m.name = m.name[len(prefix):]
+            m.name = m.name[len(prefix) :]
         tf.extractall(cache, members=members)
     if not (vpi_dir / "VpiImpl.cpp").is_file():
         raise cs.ToolchainError(f"cocotb VPI sources not found after extracting {tgz}.")
@@ -101,8 +110,14 @@ def _vpi_source_dir(version: str) -> Path:
 
 
 def _stamp_inputs(version: str, sources: list[Path]) -> str:
-    payload = {"cocotb": version, "gcc": _tool_version("g++"), "verilator": _tool_version("verilator_bin.exe"),
-               "sources": sorted(p.name for p in sources), "defines": _DEFINES, "cflags": _CFLAGS}
+    payload = {
+        "cocotb": version,
+        "gcc": _tool_version("g++"),
+        "verilator": _tool_version("verilator_bin.exe"),
+        "sources": sorted(p.name for p in sources),
+        "defines": _DEFINES,
+        "cflags": _CFLAGS,
+    }
     return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
 
@@ -122,7 +137,12 @@ def ensure(force: bool = False) -> Path | None:
     lib_path = _libs_dir() / VPI_LIB_NAME
     stamp_path = cs.CACHE_DIR / ".vpi_stamp"
     want = _stamp_inputs(version, sources)
-    if not force and lib_path.is_file() and stamp_path.is_file() and stamp_path.read_text(encoding="utf-8").strip() == want:
+    if (
+        not force
+        and lib_path.is_file()
+        and stamp_path.is_file()
+        and stamp_path.read_text(encoding="utf-8").strip() == want
+    ):
         return lib_path
 
     print(f"[bootstrap_vpi] building {VPI_LIB_NAME} (cocotb {version}) ...")
@@ -132,7 +152,11 @@ def ensure(force: bool = False) -> Path | None:
     objs: list[str] = []
     for src in sources:
         obj = obj_dir / (src.stem + ".o")
-        res = subprocess.run(["g++", *_CFLAGS, *_DEFINES, *includes, "-c", str(src), "-o", str(obj)], capture_output=True, text=True)
+        res = subprocess.run(
+            ["g++", *_CFLAGS, *_DEFINES, *includes, "-c", str(src), "-o", str(obj)],
+            capture_output=True,
+            text=True,
+        )
         if res.returncode != 0:
             raise cs.ToolchainError(f"VPI compile failed for {src.name}:\n{res.stderr[-4000:]}")
         objs.append(str(obj))

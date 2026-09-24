@@ -1,0 +1,26 @@
+# Nightly evals (P4): measures per-model pass rates. Until P4 lands this only runs the dry-run.
+# Secrets (model API keys) live in the `evals` environment with required reviewers; the job
+# never runs for pull requests, so a fork cannot reach them.
+name: Nightly evals
+
+on:
+  schedule:
+    - cron: "0 18 * * *" # 03:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evals:
+    name: evals (dry-run until P4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: evals
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Dry run
+        run: python3 evals/runner/run.py --dry-run

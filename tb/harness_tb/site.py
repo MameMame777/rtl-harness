@@ -18,14 +18,19 @@ import shutil
 import sys
 from pathlib import Path
 
-TB_DIR = Path(__file__).resolve().parents[1]          # <harness>/tb
+TB_DIR = Path(__file__).resolve().parents[1]  # <harness>/tb
 HARNESS_ROOT = TB_DIR.parent
 TOOLCHAIN_DIR = TB_DIR / "toolchain"
 MAKE_SHIM_DIR = TOOLCHAIN_DIR / "make_shim"
-CACHE_DIR = HARNESS_ROOT / ".cache"                   # VPI sources / objects / stamp (gitignored)
+CACHE_DIR = HARNESS_ROOT / ".cache"  # VPI sources / objects / stamp (gitignored)
 VPI_LIB_NAME = "libcocotbvpi_verilator.a"
 
-_WELL_KNOWN_ROOTS = (r"C:\msys64", r"C:\msys2", r"C:\tools\msys64")  # hygiene-ok: standard MSYS2 install roots
+# standard MSYS2 install roots, not user data
+_WELL_KNOWN_ROOTS = (
+    r"C:\msys64",  # hygiene-ok: well-known install root
+    r"C:\msys2",  # hygiene-ok: well-known install root
+    r"C:\tools\msys64",  # hygiene-ok: well-known install root
+)
 
 
 class ToolchainError(RuntimeError):
@@ -37,6 +42,7 @@ def is_windows() -> bool:
 
 
 # --- consumer project ------------------------------------------------------------------------
+
 
 def consumer_root() -> Path:
     """RTL_HARNESS_CONSUMER, else the nearest ancestor of cwd with harness.toml, else the
@@ -59,6 +65,7 @@ def build_root() -> Path:
 
 # --- MSYS2 (Windows only) ----------------------------------------------------------------------
 
+
 def _is_valid_root(p: Path | None) -> bool:
     return p is not None and (p / "ucrt64" / "bin" / "verilator_bin.exe").is_file()
 
@@ -79,7 +86,9 @@ def msys2_root() -> Path:
         p = Path(env)
         if _is_valid_root(p):
             return p
-        raise ToolchainError(f"MSYS2_ROOT={env!r} is set but ucrt64/bin/verilator_bin.exe is missing.")
+        raise ToolchainError(
+            f"MSYS2_ROOT={env!r} is set but ucrt64/bin/verilator_bin.exe is missing."
+        )
     derived = _root_from_path_verilator()
     if derived:
         return derived
@@ -128,6 +137,7 @@ def assert_sim_python() -> None:
 
 # --- environment for cocotb's runner ------------------------------------------------------------
 
+
 def prepend_path(root: Path | None = None) -> Path | None:
     """Make the toolchain discoverable to cocotb's runner (idempotent within a process).
 
@@ -159,12 +169,26 @@ def common_build_args() -> list[str]:
     visible but non-fatal for the BUILD: the lint verdict comes from run_lint, not from here.
     """
     if is_windows():
-        return ["-Wno-fatal", "-CFLAGS", "-O2", "-CFLAGS", "-Wno-attributes", "-LDFLAGS", "-lgpi", "-LDFLAGS", "-lgpilog"]
+        return [
+            "-Wno-fatal",
+            "-CFLAGS",
+            "-O2",
+            "-CFLAGS",
+            "-Wno-attributes",
+            "-LDFLAGS",
+            "-lgpi",
+            "-LDFLAGS",
+            "-lgpilog",
+        ]
     return ["-Wno-fatal"]
 
 
 def summary() -> str:
-    lines = [f"harness root  : {HARNESS_ROOT}", f"consumer root : {consumer_root()}", f"build root    : {build_root()}"]
+    lines = [
+        f"harness root  : {HARNESS_ROOT}",
+        f"consumer root : {consumer_root()}",
+        f"build root    : {build_root()}",
+    ]
     if is_windows():
         root = msys2_root()
         lines += [f"MSYS2_ROOT    : {root}", f"VERILATOR_ROOT: {verilator_root(root)}"]

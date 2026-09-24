@@ -17,7 +17,10 @@ from rtl_harness import paths  # noqa: E402
 def main() -> int:
     exe = paths.gitleaks()
     if exe is None:
-        print("gitleaks not found: run scripts/install_gitleaks.ps1 (or scripts/ci/install_gitleaks.sh)", file=sys.stderr)
+        print(
+            "gitleaks not found: run scripts/install_gitleaks.ps1 (or scripts/ci/install_gitleaks.sh)",
+            file=sys.stderr,
+        )
         return 1
     cfg = paths.harness_root() / ".gitleaks.toml"
     args = [str(exe), "git", "--pre-commit", "--staged", "--redact", "--exit-code", "1"]

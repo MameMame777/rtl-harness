@@ -95,12 +95,14 @@ def load_config(root: Path | None = None) -> Config:
 
     h = raw.get("harness", {})
     if h.get("schema", SCHEMA) != SCHEMA:
-        raise ConfigError(f"{cfg_path}: unsupported schema {h.get('schema')} (this harness reads {SCHEMA})")
+        raise ConfigError(
+            f"{cfg_path}: unsupported schema {h.get('schema')} (this harness reads {SCHEMA})"
+        )
     req = h.get("require")
     if req and not satisfies(__version__, str(req)):
         raise ConfigError(f"{cfg_path} requires harness {req}, but this harness is {__version__}")
 
-    d, l, s, y, t = (raw.get(k, {}) for k in ("design", "lint", "sim", "sync", "tickets"))
+    d, lint_t, s, y, t = (raw.get(k, {}) for k in ("design", "lint", "sim", "sync", "tickets"))
     domains = _as_list(raw.get("domains", {}).get("active", []), "[domains].active")
     for dom in domains:
         if not re.fullmatch(r"[a-z][a-z0-9_]*", dom):
@@ -114,8 +116,10 @@ def load_config(root: Path | None = None) -> Config:
         exclude=_as_list(d.get("exclude", []), "[design].exclude"),
         top=str(d.get("top", "") or ""),
         domains=domains,
-        waiver=(str(l["waiver"]) if l.get("waiver") else None),
-        severity_overrides={str(k): str(v) for k, v in dict(l.get("severity_overrides", {})).items()},
+        waiver=(str(lint_t["waiver"]) if lint_t.get("waiver") else None),
+        severity_overrides={
+            str(k): str(v) for k, v in dict(lint_t.get("severity_overrides", {})).items()
+        },
         tests=_as_list(s.get("tests", ["tb/**/test_*.py"]), "[sim].tests"),
         manifest=(str(s["manifest"]) if s.get("manifest") else None),
         engine=str(s.get("engine", "verilator")),
@@ -138,5 +142,5 @@ def test_files(cfg: Config) -> dict[str, Path]:
     out: dict[str, Path] = {}
     for p in safe_glob(cfg.root, cfg.tests, [], suffixes=(".py",)):
         if p.name.startswith("test_"):
-            out.setdefault(p.stem[len("test_"):], p)
+            out.setdefault(p.stem[len("test_") :], p)
     return out

@@ -23,7 +23,9 @@ KINDS = ("none", "sparse", "burst", "adversarial")
 class GapPolicy:
     """Yields the number of idle cycles to insert before each accepted beat."""
 
-    def __init__(self, kind: str = "none", seed: int = 1, max_gap: int = 3, prob: float = 0.5) -> None:
+    def __init__(
+        self, kind: str = "none", seed: int = 1, max_gap: int = 3, prob: float = 0.5
+    ) -> None:
         if kind not in KINDS:
             raise ValueError(f"gap kind {kind!r}: choose from {KINDS}")
         self.kind = kind
@@ -63,7 +65,9 @@ def make_gap_policy(kind: str | None = None, max_gap: int | None = None) -> GapP
             max_gap = int(os.environ.get("COCOTB_GAP_MAX", "3"), 0)
         except ValueError:
             max_gap = 3
-    return GapPolicy(kind=(kind or os.environ.get("COCOTB_GAP", "none")).lower(), seed=_seed(), max_gap=max_gap)
+    return GapPolicy(
+        kind=(kind or os.environ.get("COCOTB_GAP", "none")).lower(), seed=_seed(), max_gap=max_gap
+    )
 
 
 _DEFAULT: GapPolicy | None = None

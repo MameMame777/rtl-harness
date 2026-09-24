@@ -1,0 +1,26 @@
+# evals runner configuration (P4). Secrets never live here: API keys come from the
+# environment / GitHub environment secrets.
+
+[run]
+attempts = 3                 # runs per task per model; the score is the mean
+timeout_s = 900              # per attempt
+tasks = ["bus", "cpu", "verif"]
+
+[models.claude]
+adapter = "claude_cli"       # `claude -p` non-interactive mode
+command = ["claude", "-p", "--output-format", "json"]
+
+[models.copilot]
+adapter = "copilot_cli"      # GitHub Copilot CLI non-interactive mode (verify in P4)
+command = ["copilot", "-p"]
+
+[models.codex]
+adapter = "placeholder"      # added when Codex CLI support lands (sync templates + this entry)
+
+[models.qwen]
+adapter = "placeholder"      # added when Qwen Code support lands
+
+[scoring]
+pass = "lint.error == 0 and sim.status == 'pass'"
+style_violation_rate = "lint.warning / files"
+tolerance_points = 5         # a drop larger than this versus the last baseline fails the PR (decided in P4)

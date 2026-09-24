@@ -93,7 +93,9 @@ def build_and_test(
     resolved = [_resolve(s, consumer) for s in sources]
     missing = [str(p) for p in resolved if not p.is_file()]
     if missing:
-        raise FileNotFoundError(f"source file(s) not found (paths are consumer-relative): {missing}")
+        raise FileNotFoundError(
+            f"source file(s) not found (paths are consumer-relative): {missing}"
+        )
 
     if engine == "verilator":
         prepare_toolchain()
@@ -115,6 +117,7 @@ def build_and_test(
     # resume order of coroutines woken by the same trigger). Override with COCOTB_SEED.
     seed = os.environ.get("COCOTB_SEED", "1")
 
+    results_path = build_dir / "results.xml"
     runner = get_runner(engine)
     runner.build(
         sources=resolved,
@@ -138,10 +141,11 @@ def build_and_test(
             testcase=testcase,
             waves=waves,
             seed=seed,
-            results_xml=str(build_dir / "results.xml"),  # keep the test dir clean
+            results_xml=str(results_path),  # keep the test dir clean
         )
     finally:
-        # cocotb / Verilator write dump.vcd into the test dir; keep it with the build output.
+        # Runs on success AND on a failing test (runner.test raises), so rtl_harness.sim can
+        # always read the results and the waveform.
         dump = test_dir / "dump.vcd"
         if waves and dump.is_file():
             target = build_dir / "dump.vcd"
@@ -150,14 +154,11 @@ def build_and_test(
             except OSError:
                 target = dump
             print(f"RTL_HARNESS_WAVES={target}", flush=True)
-        for name in ("results.xml",):
-            candidate = test_dir / name
-            if candidate.is_file():
-                print(f"RTL_HARNESS_RESULTS_XML={candidate}", flush=True)
+        if results_path.is_file():
+            print(f"RTL_HARNESS_RESULTS_XML={results_path}", flush=True)
     if isinstance(results, (str, os.PathLike)) and Path(results).is_file():
-        print(f"RTL_HARNESS_RESULTS_XML={Path(results)}", flush=True)
         return Path(results)
-    return test_dir / "results.xml"
+    return results_path
 
 
 def _unused() -> None:  # keep sys referenced for tooling that inspects this module

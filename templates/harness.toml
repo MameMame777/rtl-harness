@@ -1,0 +1,37 @@
+# harness.toml -- project settings for rtl-harness (copy this file to the project root).
+# Everything else the harness needs is generated (rtl-harness sync) or added when missing
+# (rtl-harness provision). Paths are relative to this file; never write absolute paths here.
+
+[harness]
+schema = 1
+require = ">=0.1,<1"          # harness versions this project accepts (submodule tag)
+
+[design]
+sources = ["rtl/**/*.sv"]     # RTL files to lint (globs, project-relative)
+includes = []                 # `include search paths
+defines = []                  # NAME or NAME=VALUE
+exclude = ["rtl/vendor/**"]   # never lint these (vendor IP, generated code)
+top = ""                      # optional top module for Verilator
+
+[domains]
+active = ["bus"]              # which domain rules and docs apply: bus, cpu, verif
+
+[lint]
+waiver = "lint/waivers.verible"   # documented false positives only (reviewed by the domain owner)
+severity_overrides = {}           # may only RAISE a severity, e.g. { "verible:explicit-begin" = "error" }
+
+[sim]
+tests = ["tb/**/test_*.py"]   # test_<block>.py files; the block name is what run_sim takes
+manifest = "tb/manifest.toml" # optional: suites / engine per block
+engine = "verilator"
+build_dir = ".harness/build"
+
+[sync]
+tools = ["claude", "copilot"]  # entry files to generate (codex, qwen later)
+extra_instructions = ""        # optional project-specific rules file, appended to the entry files
+
+[tickets]
+dir = "tickets"
+github = "auto"                # auto: mirror tickets to GitHub issues when the project has a remote
+escalate_repo = "MameMame777/rtl-harness"   # where deviation / rule / tool tickets are escalated
+redact = []                    # extra regexes masked in ticket bodies (paths, e-mails and IPs are always masked)

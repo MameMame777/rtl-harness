@@ -25,8 +25,14 @@ class Result:
         return self.returncode == 0 and not self.timed_out
 
 
-def run(args: list[str], *, cwd: Path, env: dict[str, str], timeout_s: float,
-        stdin_text: str | None = None) -> Result:
+def run(
+    args: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str],
+    timeout_s: float,
+    stdin_text: str | None = None,
+) -> Result:
     start = time.perf_counter()
     try:
         proc = subprocess.run(
@@ -43,11 +49,40 @@ def run(args: list[str], *, cwd: Path, env: dict[str, str], timeout_s: float,
         )
         out, c1 = clip(proc.stdout or "")
         err, c2 = clip(proc.stderr or "")
-        return Result([str(a) for a in args], proc.returncode, out, err, time.perf_counter() - start, False, c1 or c2)
+        return Result(
+            [str(a) for a in args],
+            proc.returncode,
+            out,
+            err,
+            time.perf_counter() - start,
+            False,
+            c1 or c2,
+        )
     except subprocess.TimeoutExpired as exc:
-        out, _ = clip((exc.stdout or b"").decode("utf-8", "replace") if isinstance(exc.stdout, bytes) else (exc.stdout or ""))
-        err, _ = clip((exc.stderr or b"").decode("utf-8", "replace") if isinstance(exc.stderr, bytes) else (exc.stderr or ""))
-        return Result([str(a) for a in args], -1, out, err + f"\n[timeout after {timeout_s}s]\n",
-                      time.perf_counter() - start, True, True)
+        out, _ = clip(
+            (exc.stdout or b"").decode("utf-8", "replace")
+            if isinstance(exc.stdout, bytes)
+            else (exc.stdout or "")
+        )
+        err, _ = clip(
+            (exc.stderr or b"").decode("utf-8", "replace")
+            if isinstance(exc.stderr, bytes)
+            else (exc.stderr or "")
+        )
+        return Result(
+            [str(a) for a in args],
+            -1,
+            out,
+            err + f"\n[timeout after {timeout_s}s]\n",
+            time.perf_counter() - start,
+            True,
+            True,
+        )
     except FileNotFoundError as exc:
-        return Result([str(a) for a in args], 127, "", f"executable not found: {exc}", time.perf_counter() - start)
+        return Result(
+            [str(a) for a in args],
+            127,
+            "",
+            f"executable not found: {exc}",
+            time.perf_counter() - start,
+        )

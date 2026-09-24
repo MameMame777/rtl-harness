@@ -22,8 +22,15 @@ def test_without_remote_only_local_items(consumer: Path):
 
 def test_with_github_remote_adds_forms_and_labels(consumer: Path):
     subprocess.run(["git", "init", "-q"], cwd=str(consumer), check=True)
-    subprocess.run(["git", "remote", "add", "origin", "https://github.com/acme/proj.git"], cwd=str(consumer), check=True)
-    (consumer / "harness.toml").write_text((consumer / "harness.toml").read_text() + '\n[tickets]\nescalate_repo = "acme/rtl-harness"\n')
+    subprocess.run(
+        ["git", "remote", "add", "origin", "https://github.com/acme/proj.git"],
+        cwd=str(consumer),
+        check=True,
+    )
+    (consumer / "harness.toml").write_text(
+        (consumer / "harness.toml").read_text()
+        + '\n[tickets]\nescalate_repo = "acme/rtl-harness"\n'
+    )
     cfg = load_config(consumer)
     assert provision.repo_slug(consumer) == "acme/proj"
     paths = {m["path"] for m in provision.plan(cfg)}

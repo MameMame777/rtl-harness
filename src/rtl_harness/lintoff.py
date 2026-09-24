@@ -17,15 +17,24 @@ SOURCE_RX = re.compile(r"\.(sv|svh|v|vh)$", re.IGNORECASE)
 
 def _git(root: Path, *args: str) -> str | None:
     try:
-        r = subprocess.run(["git", *args], cwd=str(root), capture_output=True, text=True,
-                           encoding="utf-8", errors="replace", timeout=60)
+        r = subprocess.run(
+            ["git", *args],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=60,
+        )
     except (OSError, subprocess.TimeoutExpired):
         return None
     return r.stdout if r.returncode == 0 else None
 
 
 def _added_lines(root: Path, rng: str, paths: list[str] | None) -> list[tuple[str, int, str]]:
-    diff = _git(root, "diff", "--unified=0", "--no-color", "--diff-filter=AM", rng, "--", *(paths or []))
+    diff = _git(
+        root, "diff", "--unified=0", "--no-color", "--diff-filter=AM", rng, "--", *(paths or [])
+    )
     out: list[tuple[str, int, str]] = []
     if diff is None:
         return out
@@ -59,7 +68,9 @@ def _untracked(root: Path, paths: list[str] | None) -> list[tuple[str, int, str]
     return out
 
 
-def scan(root: Path, rng: str = "HEAD", paths: list[str] | None = None, include_untracked: bool = True) -> list[dict]:
+def scan(
+    root: Path, rng: str = "HEAD", paths: list[str] | None = None, include_untracked: bool = True
+) -> list[dict]:
     """Suppressions added relative to *rng* (a commit, or 'base...HEAD' for a PR).
     Returns [{file, line, text}]; an empty list when not inside a git repository."""
     added = _added_lines(root, rng, paths)

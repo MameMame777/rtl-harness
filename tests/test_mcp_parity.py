@@ -21,7 +21,9 @@ GOOD = (HARNESS / "tb" / "smoke" / "smoke_counter.sv").read_text(encoding="utf-8
 
 
 def _server():
-    spec = importlib.util.spec_from_file_location("rtl_harness_mcp_server", HARNESS / "mcp" / "server.py")
+    spec = importlib.util.spec_from_file_location(
+        "rtl_harness_mcp_server", HARNESS / "mcp" / "server.py"
+    )
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod.server
@@ -40,6 +42,7 @@ def call(name: str, args: dict) -> dict:
     async def go():
         async with Client(_server()) as c:
             return _payload(await c.call_tool(name, args))
+
     return asyncio.run(go())
 
 
@@ -47,6 +50,7 @@ def test_exactly_four_tools():
     async def go():
         async with Client(_server()) as c:
             return sorted(t.name for t in (await c.list_tools()).tools)
+
     assert asyncio.run(go()) == ["get_waveform", "list_design", "run_lint", "run_sim"]
 
 
@@ -76,8 +80,16 @@ def test_stubs_answer_with_the_contract_keys(consumer: Path):
     assert r["status"] == "unimplemented" and set(r) >= {"top", "modules", "source"}
     (consumer / ".harness").mkdir(exist_ok=True)
     (consumer / ".harness" / "dump.vcd").write_text("", encoding="utf-8")
-    r = call("get_waveform", {"waveform_path": ".harness/dump.vcd", "signals": ["top.a"], "t_start": 0})
-    assert r["status"] == "unimplemented" and set(r) >= {"signals", "clipped", "time_unit", "missing", "source"}
+    r = call(
+        "get_waveform", {"waveform_path": ".harness/dump.vcd", "signals": ["top.a"], "t_start": 0}
+    )
+    assert r["status"] == "unimplemented" and set(r) >= {
+        "signals",
+        "clipped",
+        "time_unit",
+        "missing",
+        "source",
+    }
 
 
 @requires_sim
@@ -85,7 +97,16 @@ def test_run_sim_parity(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("RTL_HARNESS_CONSUMER", str(HARNESS))
     r = call("run_sim", {"block": "smoke_counter"})
     assert r["status"] == "pass" and r["failed"] == 0 and r["first_failure"] is None
-    assert set(r) >= {"status", "passed", "failed", "first_failure", "log_path", "waveform_path", "duration_s", "source"}
+    assert set(r) >= {
+        "status",
+        "passed",
+        "failed",
+        "first_failure",
+        "log_path",
+        "waveform_path",
+        "duration_s",
+        "source",
+    }
 
 
 def test_stdio_handshake_lists_tools(monkeypatch: pytest.MonkeyPatch):
@@ -94,9 +115,15 @@ def test_stdio_handshake_lists_tools(monkeypatch: pytest.MonkeyPatch):
 
     monkeypatch.chdir(HARNESS)
     env = {k: v for k, v in os.environ.items()}
-    params = StdioServerParameters(command="uv", args=["run", "--project", ".", "--no-sync", "python", "mcp/server.py"], env=env, cwd=str(HARNESS))
+    params = StdioServerParameters(
+        command="uv",
+        args=["run", "--project", ".", "--no-sync", "python", "mcp/server.py"],
+        env=env,
+        cwd=str(HARNESS),
+    )
 
     async def go():
         async with Client(params, read_timeout_seconds=60) as c:
             return sorted(t.name for t in (await c.list_tools()).tools)
+
     assert asyncio.run(go()) == ["get_waveform", "list_design", "run_lint", "run_sim"]

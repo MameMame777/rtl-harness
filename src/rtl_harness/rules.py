@@ -73,13 +73,17 @@ def load_severities(cfg: Config) -> dict[str, dict[str, str]]:
             raise ConfigError(f"[lint].severity_overrides: {key} = {sev!r} (use error|warning)")
         tool, _, rule = key.partition(":")
         if not rule:
-            raise ConfigError(f"[lint].severity_overrides: keys look like 'verible:line-length', got {key!r}")
+            raise ConfigError(
+                f"[lint].severity_overrides: keys look like 'verible:line-length', got {key!r}"
+            )
         table = merged.setdefault(tool, {})
         current = severity_for(merged, tool, rule)
         if sev == "error" or current == sev:
             table[rule] = sev
         else:
-            raise ConfigError(f"[lint].severity_overrides may only raise severities: {key} is {current}")
+            raise ConfigError(
+                f"[lint].severity_overrides may only raise severities: {key} is {current}"
+            )
     return merged
 
 
@@ -89,7 +93,11 @@ def severity_for(sev_map: dict[str, dict[str, str]], tool: str, rule: str) -> st
         return table[rule]
     best = None
     for key, sev in table.items():
-        if key.endswith("*") and rule.startswith(key[:-1]) and (best is None or len(key) > len(best[0])):
+        if (
+            key.endswith("*")
+            and rule.startswith(key[:-1])
+            and (best is None or len(key) > len(best[0]))
+        ):
             best = (key, sev)
     if best:
         return best[1]
@@ -107,7 +115,9 @@ def load_checks(cfg: Config) -> list[ModuleType]:
         for f in sorted(d.glob("*.py")):
             if f.name.startswith("_"):
                 continue
-            spec = importlib.util.spec_from_file_location(f"rtl_harness_check_{d.parent.name}_{f.stem}", f)
+            spec = importlib.util.spec_from_file_location(
+                f"rtl_harness_check_{d.parent.name}_{f.stem}", f
+            )
             if spec is None or spec.loader is None:
                 continue
             mod = importlib.util.module_from_spec(spec)

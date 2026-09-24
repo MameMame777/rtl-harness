@@ -20,7 +20,9 @@ def test_within_accepts_inside(tmp_path: Path):
     assert _safety.within(tmp_path, ".") == tmp_path.resolve()
 
 
-@pytest.mark.parametrize("bad", ["../x.sv", "rtl/../../x.sv", "/etc/passwd", "C:/Windows/system.ini"])
+@pytest.mark.parametrize(
+    "bad", ["../x.sv", "rtl/../../x.sv", "/etc/passwd", "C:/Windows/system.ini"]
+)
 def test_within_rejects_outside(tmp_path: Path, bad: str):
     with pytest.raises(SafetyError):
         _safety.within(tmp_path, bad)

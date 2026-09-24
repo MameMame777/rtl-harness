@@ -23,15 +23,23 @@ import cocotb
 from harness_tb.lib.clkreset import bringup
 from harness_tb.lib.scoreboard import check_eq
 
+
 @cocotb.test()
-async def counts(dut):              # sim プロセス側。名前は test_ で始めない
-    clk, _ = await bringup(dut)     # rst_n を同期解除
+async def counts(dut):  # sim プロセス側。名前は test_ で始めない
+    clk, _ = await bringup(dut)  # rst_n を同期解除
     ...
 
-def test_my_block():                # pytest ホスト側。build_and_test を呼ぶだけ
+
+def test_my_block():  # pytest ホスト側。build_and_test を呼ぶだけ
     from harness_tb.runner_support import build_and_test
-    build_and_test(block="my_block", sources=["rtl/my_block.sv"], toplevel="my_block",
-                   test_dir=Path(__file__).parent, parameters={"WIDTH": 8})
+
+    build_and_test(
+        block="my_block",
+        sources=["rtl/my_block.sv"],
+        toplevel="my_block",
+        test_dir=Path(__file__).parent,
+        parameters={"WIDTH": 8},
+    )
 ```
 
 `sources` は consumer プロジェクト root からの相対パス。ブロック名はファイル名 `test_<block>.py` から決まります。

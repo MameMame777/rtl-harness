@@ -56,6 +56,7 @@ def runtime_dir(consumer: Path) -> Path:
 
 # --- interpreters ----------------------------------------------------------------------------
 
+
 def sim_python() -> Path:
     """The interpreter that runs pytest + cocotb. On Windows this must be the MSYS2 ucrt64
     python (VPI ABI), so it lives in its own venv; on Linux the project venv is fine."""
@@ -69,7 +70,9 @@ def sim_python() -> Path:
         cand = HARNESS_ROOT / ".venv-sim" / "bin" / "python.exe"
         if cand.is_file():
             return cand
-        raise ToolMissing(".venv-sim not found: run scripts/setup_toolchain.ps1 (creates the ucrt64 cocotb venv)")
+        raise ToolMissing(
+            ".venv-sim not found: run scripts/setup_toolchain.ps1 (creates the ucrt64 cocotb venv)"
+        )
     for cand in (HARNESS_ROOT / ".venv" / "bin" / "python", Path(sys.executable)):
         if cand.is_file():
             return cand
@@ -77,6 +80,7 @@ def sim_python() -> Path:
 
 
 # --- tools -----------------------------------------------------------------------------------
+
 
 def tools_dir() -> Path:
     return HARNESS_ROOT / ".tools"
@@ -122,7 +126,12 @@ def msys2_root() -> Path:
             cand = Path(hit).resolve().parents[2]
             if cand.joinpath(*marker).is_file():
                 return cand
-    candidates = [Path(r"C:\msys64"), Path(r"C:\msys2"), Path(r"C:\tools\msys64")]  # hygiene-ok: standard MSYS2 install roots
+    # standard MSYS2 install roots, not user data
+    candidates = [
+        Path(r"C:\msys64"),  # hygiene-ok: well-known install root
+        Path(r"C:\msys2"),  # hygiene-ok: well-known install root
+        Path(r"C:\tools\msys64"),  # hygiene-ok: well-known install root
+    ]
     local = os.environ.get("LOCALAPPDATA")
     if local:
         candidates.append(Path(local) / "msys64")
