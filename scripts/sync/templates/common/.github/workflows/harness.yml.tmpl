@@ -27,7 +27,7 @@ jobs:
 
       - name: Pull the CI image, or build it from the harness Dockerfile
         env:
-          CI_IMAGE: {{image}}
+          CI_IMAGE: {{image}}   # lowercase registry path, e.g. ghcr.io/<owner>/rtl-harness-ci:latest
         run: |
           docker pull "$CI_IMAGE" || docker build -t "$CI_IMAGE" {{harness_dir}}
 

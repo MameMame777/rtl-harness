@@ -14,6 +14,9 @@ permissions:
 jobs:
   analyze:
     name: analyze
+    # Code scanning upload needs GitHub Advanced Security on a private repo; it is free once
+    # the repository is public, so the job only runs then.
+    if: github.event.repository.private == false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

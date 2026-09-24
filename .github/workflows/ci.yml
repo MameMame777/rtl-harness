@@ -22,9 +22,6 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  CI_IMAGE: ghcr.io/${{ github.repository_owner }}/rtl-harness-ci:latest
-
 jobs:
   sanity:
     name: sanity
@@ -74,6 +71,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      - name: Image name (registry names must be lowercase)
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: echo "CI_IMAGE=ghcr.io/${OWNER,,}/rtl-harness-ci:latest" >> "$GITHUB_ENV"
 
       - name: Log in to GHCR (read)
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
